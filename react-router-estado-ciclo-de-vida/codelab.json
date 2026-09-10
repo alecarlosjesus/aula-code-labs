@@ -1,0 +1,27 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-09-10T18:34:10-03:00",
+  "id": "react-router-estado-ciclo-de-vida",
+  "duration": 60,
+  "title": "Roteamento Avançado e Gestão de Estado no React",
+  "authors": "TDS Professor",
+  "summary": "Roteamento, Estado e Ciclo de Vida com React Router e TypeScript",
+  "source": "codelab-react-router.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "react",
+    "typescript",
+    "web"
+  ],
+  "tags": [
+    "fiap",
+    "frontend"
+  ],
+  "url": "react-router-estado-ciclo-de-vida"
+}

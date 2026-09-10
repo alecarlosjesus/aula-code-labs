@@ -1,0 +1,287 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Roteamento Avançado e Gestão de Estado no React</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="react-router-estado-ciclo-de-vida"
+                  title="Roteamento Avançado e Gestão de Estado no React"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="Preparação de Ambiente e Sincronização Git" duration="10">
+        <p>Antes de iniciar a codificação, certifique-se de que seu repositório local está sincronizado com a branch de referência.</p>
+<h2 is-upgraded>1. Clonar e checar branches</h2>
+<pre><code language="language-bash" class="language-bash">git clone &lt;endereco-remoto-repositorio&gt;
+cd my-app
+git branch -a
+</code></pre>
+<h2 is-upgraded>2. Sincronizar com a branch do professor</h2>
+<p>Se você precisa iniciar exatamente do ponto oficial ou corrigir problemas locais:</p>
+<pre><code language="language-bash" class="language-bash"># Baixar dados atualizados
+git fetch origin
+
+# Caso vá criar sua branch nova a partir do professor:
+git switch -c feature/exemplo-rmSeuRM origin/feature/exemplo-pf0670
+
+# OU caso precise resetar sua branch atual para o estado oficial:
+git reset --hard origin/feature/exemplo-pf0670
+</code></pre>
+<h2 is-upgraded>3. Instalar dependências e rodar</h2>
+<pre><code language="language-bash" class="language-bash">npm install
+npm run dev
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Configuração de Rotas Estáticas (react-router)" duration="15">
+        <p>Vamos estruturar o roteamento declarativo utilizando o react-router.</p>
+<h2 is-upgraded>1. Instalação do Pacote</h2>
+<pre><code language="language-bash" class="language-bash">npm i react-router
+</code></pre>
+<h2 is-upgraded>2. Estrutura de Pastas</h2>
+<p>Crie as rotas dentro de src/routes/:</p>
+<pre><code language="language-text" class="language-text">src/
+└── routes/
+    ├── Home/index.tsx
+    ├── Produtos/index.tsx
+    ├── EditarProdutos/index.tsx
+    └── Error/index.tsx
+</code></pre>
+<p>Cada arquivo deve conter uma função padrão exportada, por exemplo:</p>
+<pre><code language="language-tsx" class="language-tsx">export default function Home() {
+  return &lt;h1&gt;Página Inicial&lt;/h1&gt;;
+}
+</code></pre>
+<h2 is-upgraded>3. Configurar Roteador no src/main.tsx</h2>
+<pre><code language="language-tsx" class="language-tsx">import { StrictMode } from &#39;react&#39;;
+import { createRoot } from &#39;react-dom/client&#39;;
+import { createBrowserRouter, RouterProvider } from &#39;react-router&#39;;
+import App from &#39;./App&#39;;
+import Home from &#39;./routes/Home&#39;;
+import Produtos from &#39;./routes/Produtos&#39;;
+import EditarProdutos from &#39;./routes/EditarProdutos&#39;;
+import Error from &#39;./routes/Error&#39;;
+
+const router = createBrowserRouter([
+  {
+    path: &#34;/&#34;,
+    element: &lt;App /&gt;,
+    errorElement: &lt;Error /&gt;,
+    children: [
+      { path: &#34;/&#34;, element: &lt;Home /&gt; },
+      { path: &#34;/produtos&#34;, element: &lt;Produtos /&gt; },
+      { path: &#34;/editar-produtos&#34;, element: &lt;EditarProdutos /&gt; }
+    ]
+  }
+]);
+
+createRoot(document.getElementById(&#39;root&#39;)!).render(
+  &lt;StrictMode&gt;
+    &lt;RouterProvider router={router} /&gt;
+  &lt;/StrictMode&gt;
+);
+</code></pre>
+<h2 is-upgraded>4. Configurar o Outlet e Menu de Navegação</h2>
+<p>No arquivo src/App.tsx:</p>
+<pre><code language="language-tsx" class="language-tsx">import { Outlet, Link } from &#39;react-router&#39;;
+
+export default function App() {
+  return (
+    &lt;&gt;
+      &lt;header&gt;
+        &lt;nav&gt;
+          &lt;Link to=&#34;/&#34;&gt;Início&lt;/Link&gt; | 
+          &lt;Link to=&#34;/produtos&#34;&gt;Produtos&lt;/Link&gt;
+        &lt;/nav&gt;
+      &lt;/header&gt;
+      &lt;Outlet /&gt;
+      &lt;footer&gt;
+        &lt;p&gt;© Sistema de Produtos&lt;/p&gt;
+      &lt;/footer&gt;
+    &lt;/&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Listagem de Dados em Tabela (Mock &#43; useState)" duration="15">
+        <p>Agora carregaremos dados estruturados na tela /produtos.</p>
+<h2 is-upgraded>1. Criar o Contrato de Tipagem (src/types/types.ts)</h2>
+<pre><code language="language-typescript" class="language-typescript">export interface TipoProduto {
+  id: number;
+  nome: string;
+  preco: number;
+  descricao: string;
+  avatar: string;
+}
+</code></pre>
+<h2 is-upgraded>2. Criar Mock de Dados (src/data/listaProdutos.ts)</h2>
+<pre><code language="language-typescript" class="language-typescript">import { TipoProduto } from &#39;../types/types&#39;;
+
+export const listaProdutos: TipoProduto[] = [
+  {
+    id: 1,
+    nome: &#34;Headset Gamer Sem Fio&#34;,
+    preco: 299.90,
+    descricao: &#34;Áudio espacial 7.1 e microfone retrátil.&#34;,
+    avatar: &#34;https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
+  },
+  {
+    id: 2,
+    nome: &#34;Teclado Mecânico RGB&#34;,
+    preco: 249.00,
+    descricao: &#34;Switches mecânicos rápidos.&#34;,
+    avatar: &#34;https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
+  }
+];
+</code></pre>
+<h2 is-upgraded>3. Consumir Dados no Componente src/routes/Produtos/index.tsx</h2>
+<pre><code language="language-tsx" class="language-tsx">import { useState, useEffect } from &#39;react&#39;;
+import { Link } from &#39;react-router&#39;;
+import { TipoProduto } from &#39;../../types/types&#39;;
+import { listaProdutos } from &#39;../../data/listaProdutos&#39;;
+
+export default function Produtos() {
+  const [produtos, setProdutos] = useState&lt;TipoProduto[]&gt;([]);
+
+  useEffect(() =&gt; {
+    setProdutos(listaProdutos);
+  }, []);
+
+  return (
+    &lt;main style=&#123;&#123; padding: &#39;20px&#39; }}&gt;
+      &lt;h1&gt;Painel de Produtos&lt;/h1&gt;
+      &lt;table border={1} cellPadding={10} style=&#123;&#123; width: &#39;100%&#39;, borderCollapse: &#39;collapse&#39; }}&gt;
+        &lt;thead&gt;
+          &lt;tr style=&#123;&#123; backgroundColor: &#39;#2c3e50&#39;, color: &#39;#ffffff&#39; }}&gt;
+            &lt;th&gt;Foto&lt;/th&gt;
+            &lt;th&gt;ID&lt;/th&gt;
+            &lt;th&gt;Nome&lt;/th&gt;
+            &lt;th&gt;Preço&lt;/th&gt;
+            &lt;th&gt;Ações&lt;/th&gt;
+          &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+          {produtos.map((item) =&gt; (
+            &lt;tr key={item.id}&gt;
+              &lt;td&gt;&lt;img src={item.avatar} alt={item.nome} width={60} height={60} style=&#123;&#123; objectFit: &#39;cover&#39; }} /&gt;&lt;/td&gt;
+              &lt;td&gt;{item.id}&lt;/td&gt;
+              &lt;td&gt;{item.nome}&lt;/td&gt;
+              &lt;td&gt;R$ {item.preco.toFixed(2)}&lt;/td&gt;
+              &lt;td&gt;
+                &lt;Link to={`/editar-produtos/${item.id}`}&gt;Editar&lt;/Link&gt;
+              &lt;/td&gt;
+            &lt;/tr&gt;
+          ))}
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Rotas Dinâmicas e Recuperação com useParams" duration="10">
+        <p>Configuraremos a tela de edição para receber o ID do produto via URL.</p>
+<h2 is-upgraded>1. Atualizar o Roteador no src/main.tsx</h2>
+<p>Altere a definição da rota de edição para conter o identificador variável :id:</p>
+<pre><code language="language-tsx" class="language-tsx">// Substitua /editar-produtos por:
+{ path: &#34;/editar-produtos/:id&#34;, element: &lt;EditarProdutos /&gt; }
+</code></pre>
+<h2 is-upgraded>2. Recuperar Parâmetro no Componente src/routes/EditarProdutos/index.tsx</h2>
+<p>Utilize o hook useParams para extrair o id da rota ativa:</p>
+<pre><code language="language-tsx" class="language-tsx">import { useParams } from &#39;react-router&#39;;
+
+export default function EditarProdutos() {
+  const { id } = useParams&lt;{ id: string }&gt;();
+
+  return (
+    &lt;main style=&#123;&#123; padding: &#39;20px&#39; }}&gt;
+      &lt;h1&gt;Editar Produto&lt;/h1&gt;
+      &lt;p&gt;Identificador recebido pela rota: &lt;strong&gt;{id}&lt;/strong&gt;&lt;/p&gt;
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Observabilidade de Rotas com useEffect e useLocation" duration="10">
+        <p>Para finalizar, adicionamos um efeito global que observa trocas de endereço para atualizar o título da aba e reposicionar o scroll.</p>
+<h2 is-upgraded>1. Criar o Observador (src/components/ObservadorDeRota.tsx)</h2>
+<pre><code language="language-tsx" class="language-tsx">import { useEffect } from &#39;react&#39;;
+import { useLocation } from &#39;react-router&#39;;
+
+export default function ObservadorDeRota() {
+  const location = useLocation();
+
+  useEffect(() =&gt; {
+    console.log(`Rota acessada: ${location.pathname}`);
+    document.title = `Aplicação | ${location.pathname}`;
+    window.scrollTo(0, 0);
+  }, [location]);
+
+  return null;
+}
+</code></pre>
+<h2 is-upgraded>2. Registrar no Topo de src/App.tsx</h2>
+<pre><code language="language-tsx" class="language-tsx">import { Outlet, Link } from &#39;react-router&#39;;
+import ObservadorDeRota from &#39;./components/ObservadorDeRota&#39;;
+
+export default function App() {
+  return (
+    &lt;&gt;
+      &lt;ObservadorDeRota /&gt;
+      &lt;header&gt;
+        &lt;nav&gt;
+          &lt;Link to=&#34;/&#34;&gt;Início&lt;/Link&gt; | 
+          &lt;Link to=&#34;/produtos&#34;&gt;Produtos&lt;/Link&gt;
+        &lt;/nav&gt;
+      &lt;/header&gt;
+      &lt;Outlet /&gt;
+      &lt;footer&gt;
+        &lt;p&gt;© Sistema de Produtos&lt;/p&gt;
+      &lt;/footer&gt;
+    &lt;/&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
