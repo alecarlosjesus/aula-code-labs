@@ -17,8 +17,4 @@ Clique no link da aula desejada para abrir o tutorial interativo:
 
 Este repositório utiliza a ferramenta `claat` (Codelabs as a Thing) para gerar os sites estáticos.
 
-**Para adicionar uma nova aula:**
-1. Escreva o roteiro em Markdown (`.md`).
-2. Compile utilizando o comando:
-   ```bash
-   claat.exe export nome-do-arquivo.md
+
