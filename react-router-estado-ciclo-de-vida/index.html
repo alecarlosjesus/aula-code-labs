@@ -28,6 +28,58 @@
                   feedback-link="">
     
       <google-codelab-step label="Preparação de Ambiente e Sincronização Git" duration="10">
+        <p><a href="https://alecarlosjesus.github.io/aula-code-labs" target="_blank"> INICIO </a></p>
+<p>Este procedimento deve ser realizado somente se você possuir uma branch remota no repositório do que esta sendo apresentado. Caso não possua clique em next.</p>
+<p>Guia de Configuração e Execução do Projeto</p>
+<p>Siga o passo a passo abaixo para clonar, configurar o ambiente com Git Flow e executar o projeto localmente.</p>
+<h2 is-upgraded>1. Clonar o repositório</h2>
+<pre><code language="language-bash" class="language-bash">git clone &lt;endereço-remoto-repositorio&gt;
+</code></pre>
+<h2 is-upgraded>2. Verificar branches locais</h2>
+<pre><code language="language-bash" class="language-bash">git branch
+</code></pre>
+<h2 is-upgraded>3. Verificar branches remotas</h2>
+<pre><code language="language-bash" class="language-bash">git branch -a
+</code></pre>
+<h2 is-upgraded>4. Inicializar a estrutura do Git Flow</h2>
+<p>Inicia a estrutura do Git Flow no projeto e muda automaticamente para a branch <code>develop</code>:</p>
+<pre><code language="language-bash" class="language-bash">git flow init
+</code></pre>
+<p><strong>Atenção (PC da Instituição):</strong> Caso o Git Flow não esteja instalado no Windows, execute:</p>
+<pre><code language="language-bash" class="language-bash">winget install GitTower.GitFlowNext
+</code></pre>
+<h2 is-upgraded>5. Mudar para a branch de trabalho desejada</h2>
+<pre><code language="language-bash" class="language-bash">git switch &lt;nomeDaBranch&gt;
+# ou
+git checkout &lt;nomeDaBranch&gt;
+</code></pre>
+<h2 is-upgraded>6. Acessar a pasta da aplicação</h2>
+<pre><code language="language-bash" class="language-bash">cd my-app
+</code></pre>
+<h2 is-upgraded>7. Listar o conteúdo da pasta atual</h2>
+<pre><code language="language-bash" class="language-bash">ls
+</code></pre>
+<h2 is-upgraded>8. Abrir o VS Code a partir do Git Bash</h2>
+<pre><code language="language-bash" class="language-bash">code .
+</code></pre>
+<h2 is-upgraded>9. Encerrar o Git Bash</h2>
+<pre><code language="language-bash" class="language-bash">exit
+</code></pre>
+<h2 is-upgraded>10. Abrir o terminal no VS Code e instalar dependências</h2>
+<p>No VS Code, abra um novo terminal usando o <strong>Command Prompt (CMD)</strong> e instale as dependências:</p>
+<pre><code language="language-bash" class="language-bash">npm install
+# ou
+npm i
+</code></pre>
+<p><strong>Atenção:</strong> Certifique-se de que o terminal está dentro da pasta <code>my-app</code>.</p>
+<h2 is-upgraded>11. Executar o projeto em modo de desenvolvimento</h2>
+<pre><code language="language-bash" class="language-bash">npm run dev
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Sincronização Git e Utilizando a Branch do PROFESSOR" duration="10">
         <p>Antes de iniciar a codificação, certifique-se de que seu repositório local está sincronizado com a branch de referência.</p>
 <h2 is-upgraded>1. Clonar e checar branches</h2>
 <pre><code language="language-bash" class="language-bash">git clone &lt;endereco-remoto-repositorio&gt;
