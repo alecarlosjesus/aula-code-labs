@@ -32,8 +32,9 @@
 <p>Este procedimento deve ser realizado somente se você possuir uma branch remota no repositório do que esta sendo apresentado. Caso não possua clique em next.</p>
 <p>Guia de Configuração e Execução do Projeto</p>
 <p>Siga o passo a passo abaixo para clonar, configurar o ambiente com Git Flow e executar o projeto localmente.</p>
-<h2 is-upgraded>1. Clonar o repositório</h2>
+<h2 is-upgraded>1. Clonar o e acessar o repositório</h2>
 <pre><code language="language-bash" class="language-bash">git clone &lt;endereço-remoto-repositorio&gt;
+cd nome do repositório
 </code></pre>
 <h2 is-upgraded>2. Verificar branches locais</h2>
 <pre><code language="language-bash" class="language-bash">git branch
@@ -101,17 +102,271 @@ git reset --hard origin/feature/exemplo-pf0670
 <pre><code language="language-bash" class="language-bash">npm install
 npm run dev
 </code></pre>
+<p>id: fundamentos-react-hooks summary: Guia Definitivo: Componentes, Props, Hooks e Renderização Condicional categories: react, frontend tags: fiap, frontend status: Published authors: TDS Professor</p>
+<p>Fundamentos do React: Componentes, Props e Hooks</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O que é um Componente Funcional?" duration="5">
+        <p>Um componente funcional é uma função comum do JavaScript que tem apenas uma regra principal: <strong>ela precisa retornar um código visual (HTML/JSX)</strong>.</p>
+<p>Em vez de construir uma página inteira de uma vez, você cria pequenos pedaços isolados (como um botão, um cabeçalho ou um cartão) e junta todos eles depois.</p>
+<h2 is-upgraded>Exemplo Prático</h2>
+<p>Aqui criamos um componente chamado <code>CartaoCyberpunk</code>. Ele é apenas uma função que retorna uma <code>div</code> estilizada.</p>
+<pre><code language="language-tsx" class="language-tsx">export default function CartaoCyberpunk() {
+  return (
+    &lt;div style=&#123;&#123; 
+      backgroundColor: &#39;#0d0d0d&#39;, 
+      border: &#39;2px solid #39ff14&#39;, 
+      padding: &#39;20px&#39;,
+      color: &#39;#39ff14&#39; 
+    }}&gt;
+      &lt;h2&gt;Acesso ao Sistema&lt;/h2&gt;
+      &lt;p&gt;Terminal ativado com sucesso.&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+<p><strong>Como usar?</strong> Para colocar esse componente na sua tela principal, você o importa e o escreve como se fosse uma tag HTML normal: <code><CartaoCyberpunk /></code>.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O que é Props e como usar?" duration="5">
+        <p><strong>Props</strong> (abreviação de propriedades) são informações que você envia de fora para dentro de um componente.</p>
+<p>Se você criar um componente de botão, não faz sentido escrever o texto dele fixo no código, senão todos os botões do seu site terão o mesmo texto. As <code>props</code> resolvem isso permitindo que você passe valores diferentes toda vez que usar o componente.</p>
+<h2 is-upgraded>Exemplo Prático</h2>
+<p>Vamos modificar o cartão anterior para receber um <code>titulo</code> e uma <code>mensagem</code> via <code>props</code>.</p>
+<pre><code language="language-tsx" class="language-tsx">// 1. Definimos o que o componente vai receber
+interface CartaoProps {
+  titulo: string;
+  mensagem: string;
+}
+
+// 2. Recebemos as props usando a desestruturação { titulo, mensagem }
+export default function CartaoDinamico({ titulo, mensagem }: CartaoProps) {
+  return (
+    &lt;div style=&#123;&#123; border: &#39;2px solid #ff00ff&#39;, padding: &#39;20px&#39;, color: &#39;#ff00ff&#39; }}&gt;
+      &lt;h2&gt;{titulo}&lt;/h2&gt;
+      &lt;p&gt;{mensagem}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+<p><strong>Como usar?</strong> Ao chamar o componente na tela principal, você entrega as informações assim: <code><CartaoDinamico titulo="Erro" mensagem="Falha na conexão de rede." /></code></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O que é um Hook?" duration="2">
+        <p><strong>Hook</strong> (que significa &#34;gancho&#34;) é uma função especial nativa do React.</p>
+<p>Como os componentes funcionais são apenas funções simples de JavaScript, eles não têm memória e não sabem quando a tela muda. Os Hooks servem para &#34;enganchar&#34; recursos extras nessas funções simples, como dar a elas uma memória interna ou a capacidade de observar mudanças.</p>
+<p><strong>Regra de ouro:</strong> Todo Hook obrigatoriamente começa com a palavra <code>use</code> (exemplo: <code>useState</code>, <code>useEffect</code>).</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O Hook: useState" duration="5">
+        <p>O <code>useState</code> é a memória do componente. Ele guarda um valor que pode mudar com o tempo. A grande vantagem é: <strong>toda vez que o valor do </strong></p>
+<p><strong><code>useState</code></strong></p>
+<p><strong> muda, o React atualiza a tela automaticamente para mostrar o novo valor</strong>.</p>
+<h2 is-upgraded>Exemplo Prático: Um contador</h2>
+<pre><code language="language-tsx" class="language-tsx">import { useState } from &#39;react&#39;;
+
+export default function Contador() {
+  // 1. Criamos a memória. 
+  // &#39;numero&#39; é o valor atual. &#39;setNumero&#39; é a única função que pode alterar esse valor.
+  // O (0) significa que o número começa em zero.
+  const [numero, setNumero] = useState(0);
+
+  function aumentar() {
+    setNumero(numero + 1); // Avisa o React para mudar o valor e atualizar a tela
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Tentativas de login: {numero}&lt;/p&gt;
+      &lt;button onClick={aumentar}&gt;Tentar Novamente&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O Hook: useEffect" duration="5">
+        <p>O <code>useEffect</code> é um observador. Ele serve para executar um pedaço de código em momentos específicos, geralmente em duas situações:</p>
+<ol type="1">
+<li>Assim que o componente aparece na tela pela primeira vez.</li>
+<li>Toda vez que uma variável específica muda de valor.</li>
+</ol>
+<h2 is-upgraded>Exemplo Prático: Mudando o título da aba</h2>
+<pre><code language="language-tsx" class="language-tsx">import { useState, useEffect } from &#39;react&#39;;
+
+export default function Monitor() {
+  const [status, setStatus] = useState(&#39;Aguardando...&#39;);
+
+  // O useEffect roda a função interna toda vez que a variável &#39;status&#39; mudar.
+  useEffect(() =&gt; {
+    // Ação: Mudar o título da aba do navegador
+    document.title = `Sistema: ${status}`;
+  }, [status]); // O array [status] é a lista de dependências (o que ele está vigiando).
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Status atual: {status}&lt;/p&gt;
+      &lt;button onClick={() =&gt; setStatus(&#39;Conectado&#39;)}&gt;Conectar&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O Hook: useParams" duration="5">
+        <p>O <code>useParams</code> faz parte do pacote <code>react-router</code>. Ele serve para capturar valores dinâmicos que o usuário digitou no endereço do navegador (URL).</p>
+<p>Se você tem uma rota configurada como <code>/usuario/:id</code>, o <code>useParams</code> captura o que foi digitado no lugar do <code>:id</code>.</p>
+<h2 is-upgraded>Exemplo Prático</h2>
+<p>Se o usuário acessar o endereço <code>http://seusite.com/usuario/993</code>...</p>
+<pre><code language="language-tsx" class="language-tsx">import { useParams } from &#39;react-router&#39;;
+
+export default function PerfilUsuario() {
+  // O hook extrai a parte móvel da URL e guarda na variável &#39;id&#39;
+  const { id } = useParams&lt;{ id: string }&gt;();
+
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;Perfil do Usuário&lt;/h1&gt;
+      &lt;p&gt;Você está acessando os dados do usuário número: {id}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O Hook: useRef" duration="5">
+        <p>O <code>useRef</code> serve para selecionar e interagir com um elemento HTML físico na tela, de forma direta. É o equivalente moderno de usar o antigo <code>document.getElementById()</code>.</p>
+<p>Ele guarda a referência daquela tag HTML, permitindo que você aplique ações diretas, como dar foco em um campo de texto ou ler a largura de uma imagem.</p>
+<h2 is-upgraded>Exemplo Prático: Dando foco automático no campo de texto</h2>
+<pre><code language="language-tsx" class="language-tsx">import { useRef } from &#39;react&#39;;
+
+export default function Formulario() {
+  // 1. Criamos a referência vazia
+  const inputNome = useRef&lt;HTMLInputElement&gt;(null);
+
+  function focarNoCampo() {
+    // 3. Acessamos o elemento físico (.current) e aplicamos a ação de foco (.focus())
+    inputNome.current?.focus();
+  }
+
+  return (
+    &lt;div&gt;
+      {/* 2. Conectamos a referência diretamente na tag HTML usando ref={} */}
+      &lt;input type=&#34;text&#34; ref={inputNome} placeholder=&#34;Digite seu nome&#34; /&gt;
+      &lt;button onClick={focarNoCampo}&gt;Focar no Campo&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O Hook: useLocation" duration="5">
+        <p>O <code>useLocation</code> também pertence ao <code>react-router</code>. Ele lê e retorna os dados do endereço atual exato em que o usuário está no momento. Diferente do <code>useParams</code> (que pega apenas uma variável específica), o <code>useLocation</code> pega o caminho inteiro.</p>
+<h2 is-upgraded>Exemplo Prático</h2>
+<p>Se o usuário estiver no endereço <code>http://seusite.com/configuracoes/rede</code>...</p>
+<pre><code language="language-tsx" class="language-tsx">import { useLocation } from &#39;react-router&#39;;
+
+export default function RastreadorRota() {
+  // Captura o objeto completo com os dados da URL atual
+  const local = useLocation();
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;O caminho completo que você está acessando é: {local.pathname}&lt;/p&gt;
+      {/* O resultado escrito na tela será: /configuracoes/rede */}
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O Hook: useNavigate" duration="5">
+        <p><strong>Nota técnica:</strong> A ação de redirecionar o usuário via código no React Router é feita pelo hook <strong><code>useNavigate</code></strong>.</p>
+<p>O <code>useNavigate</code> serve para trocar a tela do usuário através de um comando no código, sem que ele precise clicar em um link padrão. É muito usado após o preenchimento de um formulário ou após um login bem-sucedido.</p>
+<h2 is-upgraded>Exemplo Prático</h2>
+<pre><code language="language-tsx" class="language-tsx">import { useNavigate } from &#39;react-router&#39;;
+
+export default function TelaLogin() {
+  // 1. Inicializa o hook de navegação
+  const navegar = useNavigate();
+
+  function fazerLogin() {
+    // Aqui aconteceria a verificação de senha...
+    
+    // 2. Se a senha estiver correta, redireciona o usuário para o painel principal
+    navegar(&#39;/painel&#39;);
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;button onClick={fazerLogin}&gt;Entrar no Sistema&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="O uso do Ternário no JSX" duration="5">
+        <p>O operador ternário é um atalho para o <code>if/else</code> tradicional. No React, usamos o ternário dentro do HTML (JSX) para exibir uma informação ou outra dependendo de uma condição (renderização condicional).</p>
+<p>A estrutura é dividida em três partes: <code>Condição</code> <strong>? </strong><code>Exibe isso se for Verdade</code> <strong>: </strong><code>Exibe isso se for Falso</code></p>
+<h2 is-upgraded>Exemplo Prático: Controle de Acesso</h2>
+<pre><code language="language-tsx" class="language-tsx">import { useState } from &#39;react&#39;;
+
+export default function PainelAcesso() {
+  const [logado, setLogado] = useState(false);
+
+  return (
+    &lt;div style=&#123;&#123; backgroundColor: &#39;#1a1a1a&#39;, padding: &#39;20px&#39; }}&gt;
+      
+      {/* Lógica Ternária sendo aplicada diretamente no visual */}
+      {logado ? (
+        &lt;h2 style=&#123;&#123; color: &#39;#39ff14&#39; }}&gt;Acesso Liberado: Bem-vindo!&lt;/h2&gt;
+      ) : (
+        &lt;h2 style=&#123;&#123; color: &#39;#ff003c&#39; }}&gt;Acesso Negado: Faça Login.&lt;/h2&gt;
+      )}
+
+      {/* Botão que inverte o valor de verdadeiro para falso e vice-versa */}
+      &lt;button onClick={() =&gt; setLogado(!logado)}&gt;
+        Trocar Status
+      &lt;/button&gt;
+      
+    &lt;/div&gt;
+  );
+}
+</code></pre>
 
 
       </google-codelab-step>
     
       <google-codelab-step label="Configuração de Rotas Estáticas (react-router)" duration="15">
-        <p>Vamos estruturar o roteamento declarativo utilizando o react-router.</p>
+        <p>Nesta etapa, vamos transformar nossa aplicação em um sistema com múltiplas telas. Utilizaremos o <code>react-router</code> para ensinar o React a trocar de página sem precisar recarregar o navegador do zero.</p>
 <h2 is-upgraded>1. Instalação do Pacote</h2>
+<p>Abra o terminal na pasta do seu projeto e execute o comando abaixo para instalar a biblioteca de roteamento:</p>
 <pre><code language="language-bash" class="language-bash">npm i react-router
 </code></pre>
-<h2 is-upgraded>2. Estrutura de Pastas</h2>
-<p>Crie as rotas dentro de src/routes/:</p>
+<p><strong>O que fizemos aqui?</strong> O comando <code>i</code> é a abreviação de <code>install</code>. A biblioteca <code>react-router</code> funciona como o &#34;GPS&#34; da nossa aplicação. É ela quem mapeia qual componente deve ser exibido na tela dependendo do endereço (URL) que o usuário digitar.</p>
+<h2 is-upgraded>2. Criação da Estrutura de Pastas</h2>
+<p>Dentro da sua pasta <code>src</code>, crie uma nova pasta chamada <code>routes</code>. Dentro dela, crie as subpastas e os arquivos exatamente como no esquema abaixo:</p>
 <pre><code language="language-text" class="language-text">src/
 └── routes/
     ├── Home/index.tsx
@@ -119,21 +374,30 @@ npm run dev
     ├── EditarProdutos/index.tsx
     └── Error/index.tsx
 </code></pre>
-<p>Cada arquivo deve conter uma função padrão exportada, por exemplo:</p>
+<p><strong>Por que estruturar assim?</strong></p>
+<ul>
+<li><strong>Pasta </strong><strong><code>/routes</code></strong><strong>:</strong> Separa o que é uma &#34;Página inteira&#34; do que é apenas um &#34;Componente&#34; (como um botão ou cabeçalho).</li>
+<li><strong>Arquivo </strong><strong><code>index.tsx</code></strong><strong>:</strong> Usar esse nome faz com que o arquivo seja o padrão da pasta. Assim, ao importar a rota, basta chamar o nome da pasta e o sistema já sabe que deve carregar o <code>index.tsx</code>.</li>
+</ul>
+<p>Adicione uma função básica dentro de cada arquivo <code>index.tsx</code> criado, apenas para termos o que renderizar. Por exemplo, no <code>Home/index.tsx</code>:</p>
 <pre><code language="language-tsx" class="language-tsx">export default function Home() {
   return &lt;h1&gt;Página Inicial&lt;/h1&gt;;
 }
 </code></pre>
-<h2 is-upgraded>3. Configurar Roteador no src/main.tsx</h2>
+<h2 is-upgraded>3. Configurando o Roteador (<code>main.tsx</code>)</h2>
+<p>O arquivo <code>main.tsx</code> é o coração do projeto. Vamos configurá-lo para ser o gerente das nossas rotas. Substitua o conteúdo atual por este:</p>
 <pre><code language="language-tsx" class="language-tsx">import { StrictMode } from &#39;react&#39;;
 import { createRoot } from &#39;react-dom/client&#39;;
 import { createBrowserRouter, RouterProvider } from &#39;react-router&#39;;
+
+// Importação das nossas páginas
 import App from &#39;./App&#39;;
 import Home from &#39;./routes/Home&#39;;
 import Produtos from &#39;./routes/Produtos&#39;;
 import EditarProdutos from &#39;./routes/EditarProdutos&#39;;
 import Error from &#39;./routes/Error&#39;;
 
+// 1. Criando o mapa de rotas
 const router = createBrowserRouter([
   {
     path: &#34;/&#34;,
@@ -147,14 +411,24 @@ const router = createBrowserRouter([
   }
 ]);
 
+// 2. Injetando o roteador na aplicação
 createRoot(document.getElementById(&#39;root&#39;)!).render(
   &lt;StrictMode&gt;
     &lt;RouterProvider router={router} /&gt;
   &lt;/StrictMode&gt;
 );
 </code></pre>
-<h2 is-upgraded>4. Configurar o Outlet e Menu de Navegação</h2>
-<p>No arquivo src/App.tsx:</p>
+<p><strong>Dissecando o código:</strong></p>
+<ul>
+<li><code>createBrowserRouter</code>: É a função que memoriza todas as URLs válidas do nosso site.</li>
+<li><code>path</code>: É o endereço digitado no navegador (ex: <code>/produtos</code>).</li>
+<li><code>element</code>: Qual tela deve aparecer quando esse endereço for acessado.</li>
+<li><code>errorElement</code>: A famosa &#34;Página 404&#34;. Aparece caso o usuário digite um caminho que não existe.</li>
+<li><code>children</code>: São as sub-rotas. Elas vão ser injetadas &#34;dentro&#34; do componente <code><App /></code>.</li>
+<li><code>RouterProvider</code>: O componente provedor que substitui a chamada direta do <code><App /></code>, conectando o mapa de rotas que criamos (o <code>router</code>) diretamente à raiz do React.</li>
+</ul>
+<h2 is-upgraded>4. O Ponto de Troca e a Navegação (<code>App.tsx</code>)</h2>
+<p>Agora precisamos preparar o nosso componente raiz (<code>App.tsx</code>) para receber e trocar as telas filhas.</p>
 <pre><code language="language-tsx" class="language-tsx">import { Outlet, Link } from &#39;react-router&#39;;
 
 export default function App() {
@@ -166,7 +440,10 @@ export default function App() {
           &lt;Link to=&#34;/produtos&#34;&gt;Produtos&lt;/Link&gt;
         &lt;/nav&gt;
       &lt;/header&gt;
+
+      {/* Onde a mágica acontece */}
       &lt;Outlet /&gt;
+
       &lt;footer&gt;
         &lt;p&gt;© Sistema de Produtos&lt;/p&gt;
       &lt;/footer&gt;
@@ -174,22 +451,9 @@ export default function App() {
   );
 }
 </code></pre>
-
-
-      </google-codelab-step>
-    
-      <google-codelab-step label="Listagem de Dados em Tabela (Mock &#43; useState)" duration="15">
-        <p>Agora carregaremos dados estruturados na tela /produtos.</p>
-<h2 is-upgraded>1. Criar o Contrato de Tipagem (src/types/types.ts)</h2>
-<pre><code language="language-typescript" class="language-typescript">export interface TipoProduto {
-  id: number;
-  nome: string;
-  preco: number;
-  descricao: string;
-  avatar: string;
-}
-</code></pre>
 <h2 is-upgraded>2. Criar Mock de Dados (src/data/listaProdutos.ts)</h2>
+<p>Um dado &#34;mockado&#34; é um dado fictício. Como ainda não temos um banco de dados real ou uma API conectada à internet, vamos criar uma lista manual para simular o que o servidor nos devolveria.</p>
+<p>Crie o arquivo e adicione a lista expandida abaixo:</p>
 <pre><code language="language-typescript" class="language-typescript">import { TipoProduto } from &#39;../types/types&#39;;
 
 export const listaProdutos: TipoProduto[] = [
@@ -206,18 +470,54 @@ export const listaProdutos: TipoProduto[] = [
     preco: 249.00,
     descricao: &#34;Switches mecânicos rápidos.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
+  },
+  {
+    id: 3,
+    nome: &#34;Mouse Gamer Sem Fio&#34;,
+    preco: 150.00,
+    descricao: &#34;Sensor óptico de alta precisão e bateria de longa duração.&#34;,
+    avatar: &#34;https://images.unsplash.com/photo-1527814050087-379381547969?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
+  },
+  {
+    id: 4,
+    nome: &#34;Monitor Ultrawide 29\&#34;&#34;,
+    preco: 1200.00,
+    descricao: &#34;Tela IPS com taxa de atualização de 75Hz e HDR10.&#34;,
+    avatar: &#34;https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
+  },
+  {
+    id: 5,
+    nome: &#34;Cadeira Gamer Ergonômica&#34;,
+    preco: 850.00,
+    descricao: &#34;Apoio lombar ajustável e inclinação de até 180° graus.&#34;,
+    avatar: &#34;https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
+  },
+  {
+    id: 6,
+    nome: &#34;Webcam Full HD 1080p&#34;,
+    preco: 199.90,
+    descricao: &#34;Foco automático e microfone embutido com redutor de ruído.&#34;,
+    avatar: &#34;https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   }
 ];
 </code></pre>
-<h2 is-upgraded>3. Consumir Dados no Componente src/routes/Produtos/index.tsx</h2>
+<p><strong>O que fizemos aqui?</strong></p>
+<ul>
+<li><strong><code>import { TipoProduto }</code></strong><strong>:</strong> Trouxemos o &#34;molde&#34; que criamos no passo anterior.</li>
+<li><strong><code>TipoProduto[]</code></strong><strong>:</strong> O uso dos colchetes <code>[]</code> avisa ao TypeScript que não estamos criando apenas um produto, mas sim uma <strong>lista</strong> (um Array) composta por vários itens que seguem a mesma regra.</li>
+</ul>
+<h2 is-upgraded>3. Consumir Dados no Componente (<code>src/routes/Produtos/index.tsx</code>)</h2>
+<p>Agora vamos conectar a nossa lista de mentirinha com a tela do navegador. Abra o componente de Produtos e substitua pelo código abaixo:</p>
 <pre><code language="language-tsx" class="language-tsx">import { useState, useEffect } from &#39;react&#39;;
 import { Link } from &#39;react-router&#39;;
 import { TipoProduto } from &#39;../../types/types&#39;;
 import { listaProdutos } from &#39;../../data/listaProdutos&#39;;
 
 export default function Produtos() {
+  // 1. Criando a &#34;gaveta de memória&#34; do componente
   const [produtos, setProdutos] = useState&lt;TipoProduto[]&gt;([]);
 
+  // 2. Disparando a busca de dados ao carregar a página
   useEffect(() =&gt; {
     setProdutos(listaProdutos);
   }, []);
@@ -225,7 +525,11 @@ export default function Produtos() {
   return (
     &lt;main style=&#123;&#123; padding: &#39;20px&#39; }}&gt;
       &lt;h1&gt;Painel de Produtos&lt;/h1&gt;
+      
+      {/* 3. Estruturando a tabela */}
       &lt;table border={1} cellPadding={10} style=&#123;&#123; width: &#39;100%&#39;, borderCollapse: &#39;collapse&#39; }}&gt;
+        
+        {/* Cabeçalho das colunas */}
         &lt;thead&gt;
           &lt;tr style=&#123;&#123; backgroundColor: &#39;#2c3e50&#39;, color: &#39;#ffffff&#39; }}&gt;
             &lt;th&gt;Foto&lt;/th&gt;
@@ -235,14 +539,25 @@ export default function Produtos() {
             &lt;th&gt;Ações&lt;/th&gt;
           &lt;/tr&gt;
         &lt;/thead&gt;
+        
+        {/* 4. Corpo da Tabela: Gerando as linhas dinamicamente */}
         &lt;tbody&gt;
           {produtos.map((item) =&gt; (
             &lt;tr key={item.id}&gt;
-              &lt;td&gt;&lt;img src={item.avatar} alt={item.nome} width={60} height={60} style=&#123;&#123; objectFit: &#39;cover&#39; }} /&gt;&lt;/td&gt;
+              &lt;td&gt;
+                &lt;img 
+                  src={item.avatar} 
+                  alt={item.nome} 
+                  width={60} 
+                  height={60} 
+                  style=&#123;&#123; objectFit: &#39;cover&#39; }} 
+                /&gt;
+              &lt;/td&gt;
               &lt;td&gt;{item.id}&lt;/td&gt;
               &lt;td&gt;{item.nome}&lt;/td&gt;
               &lt;td&gt;R$ {item.preco.toFixed(2)}&lt;/td&gt;
               &lt;td&gt;
+                {/* 5. Link dinâmico passando o ID na URL */}
                 &lt;Link to={`/editar-produtos/${item.id}`}&gt;Editar&lt;/Link&gt;
               &lt;/td&gt;
             &lt;/tr&gt;
@@ -253,22 +568,49 @@ export default function Produtos() {
   );
 }
 </code></pre>
+<p><strong>Dissecando o código passo a passo:</strong></p>
+<ul>
+<li><strong>1. </strong><strong><code>useState</code></strong><strong> (O Estado):</strong> Atua como a memória da tela. Começamos com uma lista vazia <code>([])</code>. A função <code>setProdutos</code> é a única autorizada a colocar informações dentro dessa memória e, quando ela faz isso, o React redesenha a tela automaticamente.</li>
+<li><strong>2. </strong><strong><code>useEffect</code></strong><strong> (O Observador):</strong> O array vazio <code>[]</code> no final diz ao React: <em>&#34;Execute isso apenas uma vez, assim que o componente aparecer na tela&#34;</em>. É aqui que ele vai na <code>listaProdutos</code> e guarda na nossa memória.</li>
+<li><strong>3. </strong><strong><code><table></code></strong><strong> (O Visual):</strong> Criamos a estrutura clássica de tabela com <code><thead></code> para a linha de títulos e <code><tbody></code> para acomodar os dados.</li>
+<li><strong>4. </strong><strong><code>.map()</code></strong><strong> (A Linha de Montagem):</strong> Essa função percorre a nossa lista. Para cada produto que ela encontra, ela constrói uma linha da tabela (<code><tr></code>). <ul>
+<li><em>Atenção:</em> O atributo <code>key={item.id}</code> é obrigatório no React. Ele usa esse ID único para não se perder caso você precise apagar ou reordenar um produto depois.</li>
+</ul>
+</li>
+<li><strong>5. O </strong><strong><code><Link></code></strong><strong> Dinâmico:</strong> Em vez de direcionar para um endereço fixo, usamos a crase (Template String) para juntar o caminho padrão com a variável do ID do produto atual. Se clicarmos no Mouse, ele nos levará para <code>/editar-produtos/3</code>.</li>
+</ul>
 
 
       </google-codelab-step>
     
       <google-codelab-step label="Rotas Dinâmicas e Recuperação com useParams" duration="10">
-        <p>Configuraremos a tela de edição para receber o ID do produto via URL.</p>
-<h2 is-upgraded>1. Atualizar o Roteador no src/main.tsx</h2>
-<p>Altere a definição da rota de edição para conter o identificador variável :id:</p>
-<pre><code language="language-tsx" class="language-tsx">// Substitua /editar-produtos por:
+        <p>Até agora, nossas rotas eram <strong>estáticas</strong> (o endereço exato precisava ser digitado, como <code>/produtos</code>). Agora, configuraremos uma rota <strong>dinâmica</strong>, ou seja, uma tela que muda dependendo do ID do produto que passamos na URL.</p>
+<h2 is-upgraded>1. Atualizar o Roteador no <code>src/main.tsx</code></h2>
+<p>Abra o seu arquivo de rotas principal e altere a definição da rota de edição. Adicionaremos o identificador variável <code>:id</code> ao final do caminho:</p>
+<pre><code language="language-tsx" class="language-tsx">// Procure a lista de rotas (children) e substitua a rota antiga por esta:
 { path: &#34;/editar-produtos/:id&#34;, element: &lt;EditarProdutos /&gt; }
 </code></pre>
-<h2 is-upgraded>2. Recuperar Parâmetro no Componente src/routes/EditarProdutos/index.tsx</h2>
-<p>Utilize o hook useParams para extrair o id da rota ativa:</p>
-<pre><code language="language-tsx" class="language-tsx">import { useParams } from &#39;react-router&#39;;
+<p><strong>O que significa o símbolo </strong></p>
+<p><strong><code>:</code></strong></p>
+<p><strong> na rota?</strong> O uso dos dois pontos (<code>:</code>) avisa ao React Router que a palavra <code>id</code> não é um texto fixo, mas sim um <strong>coringa</strong> (um espaço em branco). Se o usuário digitar <code>/editar-produtos/5</code> ou <code>/editar-produtos/99</code> no navegador, o roteador vai aceitar e entender que <code>5</code> e <code>99</code> são, na verdade, o valor do nosso <code>:id</code>.</p>
+<h2 is-upgraded>2. Entendendo a Desestruturação (Destructuring)</h2>
+<p>Antes de recuperar esse valor no componente, precisamos entender uma técnica moderna do JavaScript chamada <strong>Desestruturação (Destructuring)</strong>.</p>
+<p>O hook <code>useParams</code> sempre devolve um <strong>objeto</strong> contendo todos os parâmetros da URL. Em vez de guardar o objeto inteiro em uma variável para depois tirar a informação de dentro dele, a desestruturação permite &#34;abrir&#34; o objeto e pegar apenas o que queremos logo de cara.</p>
+<pre><code language="language-javascript" class="language-javascript">// ❌ JEITO TRADICIONAL (Sem destructuring)
+const parametros = useParams(); // Retorna o objeto inteiro: { id: &#34;99&#34; }
+const meuId = parametros.id;    // Extrai o valor do objeto
+
+// ✅ JEITO MODERNO (Com destructuring)
+// Lemos assim: &#34;Vá no objeto que o useParams retornou e arranque apenas a propriedade &#39;id&#39; de dentro dele&#34;.
+const { id } = useParams(); 
+</code></pre>
+<h2 is-upgraded>3. Recuperando o Parâmetro no Componente (<code>EditarProdutos/index.tsx</code>)</h2>
+<p>Agora que a rota está preparada para receber o dado e já sabemos como extraí-lo com destructuring, vamos aplicar isso na tela de edição:</p>
+<pre><code language="language-tsx" class="language-tsx">// 1. Importamos o hook que lê os parâmetros da URL
+import { useParams } from &#39;react-router&#39;;
 
 export default function EditarProdutos() {
+  // 2. Extraímos o &#34;id&#34; usando destructuring e tipamos como string
   const { id } = useParams&lt;{ id: string }&gt;();
 
   return (
@@ -279,50 +621,15 @@ export default function EditarProdutos() {
   );
 }
 </code></pre>
-
-
-      </google-codelab-step>
-    
-      <google-codelab-step label="Observabilidade de Rotas com useEffect e useLocation" duration="10">
-        <p>Para finalizar, adicionamos um efeito global que observa trocas de endereço para atualizar o título da aba e reposicionar o scroll.</p>
-<h2 is-upgraded>1. Criar o Observador (src/components/ObservadorDeRota.tsx)</h2>
-<pre><code language="language-tsx" class="language-tsx">import { useEffect } from &#39;react&#39;;
-import { useLocation } from &#39;react-router&#39;;
-
-export default function ObservadorDeRota() {
-  const location = useLocation();
-
-  useEffect(() =&gt; {
-    console.log(`Rota acessada: ${location.pathname}`);
-    document.title = `Aplicação | ${location.pathname}`;
-    window.scrollTo(0, 0);
-  }, [location]);
-
-  return null;
-}
-</code></pre>
-<h2 is-upgraded>2. Registrar no Topo de src/App.tsx</h2>
-<pre><code language="language-tsx" class="language-tsx">import { Outlet, Link } from &#39;react-router&#39;;
-import ObservadorDeRota from &#39;./components/ObservadorDeRota&#39;;
-
-export default function App() {
-  return (
-    &lt;&gt;
-      &lt;ObservadorDeRota /&gt;
-      &lt;header&gt;
-        &lt;nav&gt;
-          &lt;Link to=&#34;/&#34;&gt;Início&lt;/Link&gt; | 
-          &lt;Link to=&#34;/produtos&#34;&gt;Produtos&lt;/Link&gt;
-        &lt;/nav&gt;
-      &lt;/header&gt;
-      &lt;Outlet /&gt;
-      &lt;footer&gt;
-        &lt;p&gt;© Sistema de Produtos&lt;/p&gt;
-      &lt;/footer&gt;
-    &lt;/&gt;
-  );
-}
-</code></pre>
+<p><strong>Como o </strong></p>
+<p><strong><code>useParams</code></strong></p>
+<p><strong> consegue pegar o que foi digitado?</strong> A mágica acontece em 3 passos invisíveis:</p>
+<ol type="1">
+<li><strong>O usuário acessa: </strong><code>http://localhost:5173/editar-produtos/42</code>.</li>
+<li><strong>O Roteador lê:</strong> O <code>react-router</code> analisa essa URL e cruza com o mapa que criamos lá no <code>main.tsx</code> (<code>/editar-produtos/:id</code>).</li>
+<li><strong>O Roteador guarda:</strong> Ele percebe que o número <code>42</code> está exatamente na posição onde deveria estar o curinga <code>:id</code>. Ele empacota isso em um objeto interno parecido com <code>{ id: "42" }</code>.</li>
+<li><strong>O Hook captura:</strong> Quando chamamos o <code>useParams()</code> dentro do componente, ele funciona como uma antena que se conecta a esse pacote criado pelo roteador, trazendo o valor <code>42</code> para podermos usar no nosso HTML.</li>
+</ol>
 
 
       </google-codelab-step>
