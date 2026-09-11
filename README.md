@@ -10,9 +10,8 @@ Clique no link da aula desejada para abrir o tutorial interativo:
 
 * [Roteamento, Estado e Ciclo de Vida com React Router](https://alecarlosjesus.github.io/aula-code-labs/react-router-estado-ciclo-de-vida/)
 * [Guia Passo a Passo: Carregando e Listando Produtos em Tabela (React + TypeScript)](https://alecarlosjesus.github.io/aula-code-labs/consumir-dados-produtos/)
+* [Dominando Ícones no React (react-icons)](https://alecarlosjesus.github.io/aula-code-labs/react-icons-vite/)
 * *(Novas aulas serão adicionadas aqui...)*
-
-
 
 ---
 
