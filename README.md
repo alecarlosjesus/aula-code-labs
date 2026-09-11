@@ -4,13 +4,14 @@ Repositório central de tutoriais interativos e roteiros de aula para as turmas 
 
 Os guias abaixo foram desenvolvidos no formato Google Codelabs para facilitar o acompanhamento prático, passo a passo.
 
+
 ## 📚 Índice de Aulas
 
-Clique no link da aula desejada para abrir o tutorial interativo:
+> **Dica:** Segure `Ctrl` (ou `Cmd` no Mac) ao clicar no link para abrir em uma nova aba.
 
-* <a href="https://alecarlosjesus.github.io/aula-code-labs/react-router-estado-ciclo-de-vida/" target="_blank">Roteamento, Estado e Ciclo de Vida com React Router</a>
-* <a href="https://alecarlosjesus.github.io/aula-code-labs/consumir-dados-produtos/" target="_blank">Guia Passo a Passo: Carregando e Listando Produtos em Tabela (React + TypeScript)</a>
-* <a href="https://alecarlosjesus.github.io/aula-code-labs/react-icons-vite/" target="_blank">Dominando Ícones no React (react-icons)</a>
+* [Roteamento, Estado e Ciclo de Vida com React Router](https://alecarlosjesus.github.io/aula-code-labs/react-router-estado-ciclo-de-vida/)
+* [Guia Passo a Passo: Carregando e Listando Produtos em Tabela (React + TypeScript)](https://alecarlosjesus.github.io/aula-code-labs/consumir-dados-produtos/)
+* [Dominando Ícones no React (react-icons)](https://alecarlosjesus.github.io/aula-code-labs/react-icons-vite/)
 * *(Novas aulas serão adicionadas aqui...)*
 
 ---
