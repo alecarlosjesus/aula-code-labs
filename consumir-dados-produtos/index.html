@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <meta name="theme-color" content="#4F7DC9">
   <meta charset="UTF-8">
-  <title>Guia Passo a Passo: Carregando e Listando Produtos em Tabela (React &#43; TypeScript)</title>
+  <title>Carregando e Listando Produtos na Tela</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
   <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
@@ -23,57 +23,59 @@
   <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
   <google-codelab codelab-gaid=""
                   id="consumir-dados-produtos"
-                  title="Guia Passo a Passo: Carregando e Listando Produtos em Tabela (React &#43; TypeScript)"
+                  title="Carregando e Listando Produtos na Tela"
                   environment="web"
                   feedback-link="">
     
-      <google-codelab-step label="Passo 1: O &#34;Molde&#34; do nosso Produto (Criando a Tipagem)" duration="10">
-        <p>No TypeScript, antes de criar dados, criamos um contrato (ou uma ficha cadastral)[cite: 2]. Isso ensina ao editor exatamente quais campos todo produto precisa ter[cite: 2]. Se esquecermos uma vírgula ou escrevermos o nome do campo errado, o TypeScript avisa na hora[cite: 2].</p>
+      <google-codelab-step label="Passo 1: O &#34;Molde&#34; do Produto (Tipagem)" duration="10">
+        <p>No TypeScript, não podemos simplesmente jogar dados soltos. Precisamos criar uma &#34;Ficha Cadastral&#34; (chamada de Interface). Isso ensina ao código quais informações um produto obrigatoriamente deve ter.</p>
 <ol type="1">
-<li>Dentro da pasta <code>src</code>, crie uma pasta chamada <code>types</code>[cite: 2].</li>
-<li>Dentro dela, crie o arquivo <code>types.ts</code>[cite: 2].</li>
-<li>Adicione o seguinte código[cite: 2]:</li>
+<li>Dentro da pasta <code>src</code>, crie uma pasta chamada <code>types</code>.</li>
+<li>Dentro de <code>types</code>, crie o arquivo <code>types.ts</code>.</li>
+<li>Cole o código abaixo:</li>
 </ol>
-<pre><code language="language-typescript" class="language-typescript">// src/types/types.ts
-
-// &#39;export&#39; permite que esse molde seja usado em outros arquivos.
-// &#39;interface&#39; é a palavra-chave para criar o contrato de estrutura.
+<pre><code language="language-typescript" class="language-typescript">// A palavra &#39;export&#39; permite que outros arquivos do projeto usem este molde.
+// A palavra &#39;interface&#39; é o comando do TypeScript para criar uma estrutura de dados.
+// &#39;TipoProduto&#39; é o nome que escolhemos para o nosso molde (sempre com letra maiúscula).
 export interface TipoProduto {
-  // &#39;id&#39; é numérico. Exemplo: 1, 2, 3.
-  id: number;          
   
-  // &#39;nome&#39; é texto (string). Exemplo: &#34;Teclado Mecânico&#34;.
-  nome: string;        
+  // &#39;id&#39; vai guardar a identificação única. &#39;number&#39; significa que só aceita números.
+  id: number;
   
-  // &#39;preco&#39; é numérico. Não usamos &#34;R$&#34;, apenas decimais. Ex: 299.90.
-  preco: number;       
+  // &#39;nome&#39; vai guardar o título do produto. &#39;string&#39; significa que só aceita textos.
+  nome: string;
   
-  // &#39;descricao&#39; é texto curto explicando o item.
-  descricao: string;   
+  // &#39;preco&#39; vai guardar o valor. Também é &#39;number&#39; (usaremos números com ponto, ex: 299.90).
+  preco: number;
   
-  // &#39;avatar&#39; é texto (string) contendo a URL da imagem.
-  avatar: string;      
+  // &#39;descricao&#39; é um texto explicativo sobre o produto.
+  descricao: string;
+  
+  // &#39;avatar&#39; vai receber o link de uma imagem da internet (por isso é um texto/string).
+  avatar: string;
 }
 </code></pre>
 
 
       </google-codelab-step>
     
-      <google-codelab-step label="Passo 2: O Nosso Estoque Fictício (Arquivo de Mock)" duration="15">
-        <p>Um dado &#34;mockado&#34; é um dado de mentirinha, usado para testes enquanto não temos um banco de dados de verdade conectado na internet[cite: 2].</p>
+      <google-codelab-step label="Passo 2: O Nosso Estoque (Mock de Dados)" duration="10">
+        <p>Como ainda não conectamos nosso site a um banco de dados real, vamos criar uma lista de &#34;mentirinha&#34; (Mock) para testar o visual da tela.</p>
 <ol type="1">
-<li>Dentro de <code>src</code>, crie uma pasta chamada <code>data</code>[cite: 2].</li>
-<li>Dentro de <code>data</code>, crie o arquivo <code>listaProdutos.ts</code>[cite: 2].</li>
-<li>Adicione os 10 produtos abaixo[cite: 2]:</li>
+<li>Dentro de <code>src</code>, crie uma pasta chamada <code>data</code>.</li>
+<li>Dentro de <code>data</code>, crie o arquivo <code>listaProdutos.ts</code>.</li>
+<li>Cole o código abaixo. Leia os comentários para entender a sintaxe!</li>
 </ol>
-<pre><code language="language-typescript" class="language-typescript">// src/data/listaProdutos.ts
-
-// Importamos a regra que criamos no Passo 1.
+<pre><code language="language-typescript" class="language-typescript">// Primeiro, importamos o molde que criamos no Passo 1.
 import { TipoProduto } from &#39;../types/types&#39;;
 
-// O [] após TipoProduto avisa que criaremos uma LISTA (Array) contendo vários produtos com esse formato.
+// &#39;export const&#39; cria uma constante (variável que não muda de nome) e a libera para uso.
+// &#39;listaProdutos&#39; é o nome do nosso estoque.
+// &#39;: TipoProduto[]&#39; é a regra! O colchete [] avisa: &#34;Isso não é um produto só, é uma LISTA de produtos&#34;.
+// O sinal de igual &#39;=&#39; vai atribuir a lista.
+// Os colchetes abertos &#39;[&#39; e fechados &#39;]&#39; no final guardam todos os itens dentro.
 export const listaProdutos: TipoProduto[] = [
-  {
+  { // As chaves {} representam UM produto individual.
     id: 1,
     nome: &#34;Headset Gamer Sem Fio&#34;,
     preco: 299.90,
@@ -84,63 +86,63 @@ export const listaProdutos: TipoProduto[] = [
     id: 2,
     nome: &#34;Teclado Mecânico RGB&#34;,
     preco: 249.00,
-    descricao: &#34;Switches mecânicos rápidos e iluminação colorida ajustável.&#34;,
+    descricao: &#34;Switches rápidos e iluminação colorida ajustável.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   },
   {
     id: 3,
     nome: &#34;Smartwatch Fitness&#34;,
     preco: 189.50,
-    descricao: &#34;Mede batimentos cardíacos, conta passos e mostra notificações.&#34;,
+    descricao: &#34;Mede batimentos cardíacos, conta passos e exibe notificações.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   },
   {
     id: 4,
     nome: &#34;Câmera Instantânea&#34;,
     preco: 420.00,
-    descricao: &#34;Tira fotos analógicas e imprime na hora para colar no caderno.&#34;,
+    descricao: &#34;Tira fotos analógicas e imprime na hora.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   },
   {
     id: 5,
     nome: &#34;Mouse Pad Gigante&#34;,
     preco: 89.90,
-    descricao: &#34;Superfície speed para movimentos rápidos, base emborrachada.&#34;,
+    descricao: &#34;Superfície speed para movimentos rápidos.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1616423640778-28d1b53229bd?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   },
   {
     id: 6,
     nome: &#34;Microfone Condensador USB&#34;,
     preco: 350.00,
-    descricao: &#34;Captação de voz cristalina, ideal para streams e aulas.&#34;,
+    descricao: &#34;Captação de voz cristalina, ideal para streams.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   },
   {
     id: 7,
-    nome: &#34;Monitor Ultrawide 29\&#34;&#34;,
+    nome: &#34;Monitor Ultrawide 29&#34;,
     preco: 1250.00,
-    descricao: &#34;Tela imersiva com taxa de atualização de 75Hz e painel IPS.&#34;,
+    descricao: &#34;Tela imersiva com painel IPS de alta fidelidade.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   },
   {
     id: 8,
     nome: &#34;Cadeira Ergonômica&#34;,
     preco: 850.00,
-    descricao: &#34;Apoio lombar, ajuste de altura e inclinação de 180 graus.&#34;,
+    descricao: &#34;Apoio lombar e ajuste de inclinação de 180 graus.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   },
   {
     id: 9,
     nome: &#34;Webcam Full HD&#34;,
     preco: 199.00,
-    descricao: &#34;Foco automático, resolução 1080p e tampa de privacidade.&#34;,
+    descricao: &#34;Resolução 1080p, foco automático e tampa de privacidade.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   },
   {
     id: 10,
     nome: &#34;Fita LED Inteligente&#34;,
     preco: 120.00,
-    descricao: &#34;5 metros de comprimento, controle por app e comando de voz.&#34;,
+    descricao: &#34;5 metros, controle por aplicativo e comando de voz.&#34;,
     avatar: &#34;https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=120&amp;auto=format&amp;fit=crop&amp;q=80&#34;
   }
 ];
@@ -149,60 +151,56 @@ export const listaProdutos: TipoProduto[] = [
 
       </google-codelab-step>
     
-      <google-codelab-step label="Passo 3: Abrindo o Componente Produtos e Entendendo os Hooks" duration="5">
-        <p>Abra o arquivo do seu componente que já existe: <code>src/routes/Produtos/index.tsx</code>[cite: 2]. Para fazer esse componente funcionar, precisaremos de duas ferramentas especiais do React chamadas Hooks[cite: 2]:</p>
-<ul>
-<li><strong><code>useState</code></strong>: É a gaveta da memória do componente[cite: 2]. Toda vez que você guarda algo nela usando a função <code>set...</code>, o React descobre que tem novidade e repinta a tela para mostrar os dados atualizados[cite: 2].</li>
-<li><strong><code>useEffect</code></strong>: É um vigia que espera a tela carregar[cite: 2]. Imagine que o componente acabou de ser colocado na tela pela primeira vez (a gente chama isso de &#34;montagem&#34;)[cite: 2]. O <code>useEffect</code> percebe isso e dispara uma ação que você programou, como por exemplo: &#34;Agora que a tela abriu, busque a lista de produtos e guarde na gaveta!&#34;[cite: 2].</li>
-</ul>
+      <google-codelab-step label="Passo 3: O Código da Tela (Componente &#43; Hooks &#43; Tabela)" duration="25">
+        <p>Agora vamos juntar tudo na tela de Produtos.</p>
+<p>Abra o arquivo <code>src/routes/Produtos/index.tsx</code> e substitua TUDO pelo código abaixo. Leia cada comentário atentamente, pois eles explicam linha a linha o que os Hooks e as tags da tabela estão fazendo.</p>
+<pre><code language="language-tsx" class="language-tsx">// --- ÁREA DE IMPORTAÇÕES ---
 
-
-      </google-codelab-step>
-    
-      <google-codelab-step label="Passo 4, 5, 6 e 7: Estruturação, Carregamento e Tabela Visual" duration="15">
-        <p>Uma tabela na web funciona como uma planilha de caderno[cite: 2]:</p>
-<ul>
-<li><code><table></code>: A tabela inteira[cite: 2].</li>
-<li><code><thead></code>: O cabeçalho (a primeira linha que diz o nome de cada coluna)[cite: 2].</li>
-<li><code><th></code>: A célula do cabeçalho (título da coluna: Foto, Nome, Preço...)[cite: 2].</li>
-<li><code><tbody></code>: O corpo da tabela, onde moram os dados reais[cite: 2].</li>
-<li><code><tr></code>: Uma linha inteira (Table Row)[cite: 2].</li>
-<li><code><td></code>: Um quadradinho/célula de dado (Table Data)[cite: 2].</li>
-</ul>
-<p>Para mostrar vários produtos sem ter que digitar um por um manualmente, usamos a função do JavaScript chamada <code>.map()</code>[cite: 2]. O <code>.map()</code> funciona como uma esteira de fábrica: ele pega cada item da nossa lista, um por um, e transforma em uma linha <code><tr></code> na tabela[cite: 2].</p>
-<p>Substitua o conteúdo de <code>src/routes/Produtos/index.tsx</code> pelo código documentado abaixo, formatado com a temática visual Cyberpunk Neon:</p>
-<pre><code language="language-tsx" class="language-tsx">// 1. Ferramentas essenciais do React
+// Importamos o &#39;useState&#39; (para criar a memória da tela) e o &#39;useEffect&#39; (para executar ações ao carregar a tela)
 import { useState, useEffect } from &#39;react&#39;;
 
-// 2. Importação do Contrato (Tipagem) e dos Dados
+// Importamos o molde para garantir que não vamos errar os campos do produto
 import { TipoProduto } from &#39;../../types/types&#39;;
+
+// Importamos a nossa lista de mentirinha com os 10 produtos
 import { listaProdutos } from &#39;../../data/listaProdutos&#39;;
 
+// --- INÍCIO DO COMPONENTE ---
 export default function Produtos() {
-  // O Hook useState prepara a memória. 
-  // &#39;produtos&#39; = a lista atual (começa vazia: []).
-  // &#39;setProdutos&#39; = o controle remoto que atualiza essa lista.
+
+  // 1. CRIANDO A MEMÓRIA DA TELA (useState)
+  // Lemos assim:
+  // - &#39;produtos&#39;: é a caixa onde os dados vão ficar guardados.
+  // - &#39;setProdutos&#39;: é o controle remoto. Só ele tem permissão para colocar ou tirar dados da caixa.
+  // - &#39;useState&lt;TipoProduto[]&gt;&#39;: Avisa ao React que essa memória só aceita uma lista de produtos.
+  // - &#39;([])&#39;: É o valor inicial. A tela começa com a lista VAZIA antes de carregar.
   const [produtos, setProdutos] = useState&lt;TipoProduto[]&gt;([]);
 
-  // O Hook useEffect dispara quando a tela &#34;nasce&#34;.
+  // 2. AÇÃO AO ABRIR A PÁGINA (useEffect)
+  // O useEffect observa o ciclo de vida do componente.
   useEffect(() =&gt; {
-    // Ação: Pega os dados do arquivo e salva na memória do componente.
+    // Usamos o controle remoto para pegar a &#39;listaProdutos&#39; do arquivo e colocar dentro da memória &#39;produtos&#39;
     setProdutos(listaProdutos);
     
-    // O array vazio [] garante que isso aconteça APENAS UMA VEZ.
+    // ATENÇÃO: Esse array vazio [] no final é crucial.
+    // Ele diz ao React: &#34;Faça essa ação APENAS UMA VEZ, no exato momento em que a página abrir&#34;.
   }, []);
 
+  // 3. DESENHANDO A TELA (return JSX)
   return (
-    &lt;main style=&#123;&#123; padding: &#39;20px&#39;, fontFamily: &#39;sans-serif&#39;, backgroundColor: &#39;#0d0d0d&#39;, color: &#39;#39ff14&#39;, minHeight: &#39;100vh&#39; }}&gt;
+    // A tag &lt;main&gt; é o contêiner principal. Adicionamos um estilo Cyberpunk Neon diretamente nela.
+    &lt;main style=&#123;&#123; padding: &#39;20px&#39;, backgroundColor: &#39;#0d0d0d&#39;, color: &#39;#39ff14&#39;, minHeight: &#39;100vh&#39; }}&gt;
       &lt;h1&gt;Painel de Produtos&lt;/h1&gt;
-      &lt;p&gt;Confira abaixo a lista de itens cadastrados no sistema:&lt;/p&gt;
-
-      {/* Tabela estilizada em formato Neon/Dark */}
-      &lt;table border={1} cellPadding={10} style=&#123;&#123; width: &#39;100%&#39;, borderCollapse: &#39;collapse&#39;, textAlign: &#39;left&#39;, borderColor: &#39;#39ff14&#39; }}&gt;
+      
+      {/* --- INÍCIO DA TABELA --- */}
+      {/* &lt;table&gt; cria a estrutura. As bordas foram pintadas de verde neon (#39ff14) */}
+      &lt;table border={1} cellPadding={10} style=&#123;&#123; width: &#39;100%&#39;, borderCollapse: &#39;collapse&#39;, borderColor: &#39;#39ff14&#39; }}&gt;
         
-        {/* Cabeçalho da Tabela */}
+        {/* &lt;thead&gt; representa o CABEÇALHO da tabela (os títulos das colunas) */}
         &lt;thead&gt;
+          {/* &lt;tr&gt; significa Table Row (Linha da tabela). Pintamos o fundo de cinza escuro. */}
           &lt;tr style=&#123;&#123; backgroundColor: &#39;#1a1a1a&#39;, color: &#39;#ff00ff&#39; }}&gt;
+            {/* &lt;th&gt; significa Table Heading (Célula de título) */}
             &lt;th&gt;Foto&lt;/th&gt;
             &lt;th&gt;ID&lt;/th&gt;
             &lt;th&gt;Nome&lt;/th&gt;
@@ -211,35 +209,48 @@ export default function Produtos() {
           &lt;/tr&gt;
         &lt;/thead&gt;
 
-        {/* Corpo da Tabela com a repetição automática usando .map() */}
+        {/* &lt;tbody&gt; representa o CORPO da tabela (onde os dados vão ficar) */}
         &lt;tbody&gt;
+          
+          {/* 
+            A MÁGICA DO MAP:
+            O &#39;.map()&#39; pega a nossa memória &#39;produtos&#39; e funciona como uma impressora.
+            Para cada produto na lista, ele roda o código abaixo uma vez, apelidando o produto atual de &#39;item&#39;.
+          */}
           {produtos.map((item) =&gt; (
-            // A &#39;key&#39; ajuda o React a não se perder ao renderizar listas. 
-            // Exemplo: Se o ID for 1, a key será 1.
+            
+            // Para cada item, criamos uma linha nova &lt;tr&gt;
+            // O React EXIGE que toda linha gerada por um &#39;.map()&#39; tenha uma &#39;key&#39; única.
+            // Passamos o &#39;item.id&#39; para o React não se perder ao atualizar a tela.
             &lt;tr key={item.id} style=&#123;&#123; borderBottom: &#39;1px solid #39ff14&#39; }}&gt;
               
-              {/* Coluna da Imagem */}
+              {/* &lt;td&gt; significa Table Data (Célula de dado comum) */}
+              
+              {/* Coluna 1: A Imagem */}
               &lt;td&gt;
                 &lt;img 
-                  src={item.avatar} 
-                  alt={item.nome} 
+                  src={item.avatar} // Puxa o link da internet guardado no mock
+                  alt={item.nome}   // Texto alternativo caso a imagem quebre
                   width={60} 
                   height={60} 
                   style=&#123;&#123; objectFit: &#39;cover&#39;, borderRadius: &#39;4px&#39;, border: &#39;1px solid #ff00ff&#39; }} 
                 /&gt;
               &lt;/td&gt;
               
-              {/* Coluna do ID */}
+              {/* Coluna 2: O ID */}
+              {/* Usamos chaves {} no JSX sempre que queremos escrever uma variável do JavaScript no meio do HTML */}
               &lt;td&gt;{item.id}&lt;/td&gt;
               
-              {/* Coluna do Nome */}
+              {/* Coluna 3: O Nome (em negrito) */}
               &lt;td&gt;&lt;strong&gt;{item.nome}&lt;/strong&gt;&lt;/td&gt;
               
-              {/* Coluna do Preço formatado com duas casas decimais */}
+              {/* Coluna 4: O Preço */}
+              {/* .toFixed(2) obriga o número a sempre mostrar 2 casas decimais (Ex: 299.9 vira 299.90) */}
               &lt;td&gt;R$ {item.preco.toFixed(2)}&lt;/td&gt;
               
-              {/* Coluna da Descrição */}
+              {/* Coluna 5: A Descrição */}
               &lt;td&gt;{item.descricao}&lt;/td&gt;
+              
             &lt;/tr&gt;
           ))}
         &lt;/tbody&gt;
