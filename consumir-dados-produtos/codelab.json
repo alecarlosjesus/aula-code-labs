@@ -1,0 +1,28 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-09-11T12:16:23-03:00",
+  "id": "consumir-dados-produtos",
+  "duration": 45,
+  "title": "Guia Passo a Passo: Carregando e Listando Produtos em Tabela (React + TypeScript)",
+  "authors": "TDS Professor",
+  "summary": "Guia Passo a Passo: Carregando e Listando Produtos em Tabela (React + TypeScript)",
+  "source": "consumir-dados-produtos.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "react",
+    "typescript",
+    "web"
+  ],
+  "tags": [
+    "fiap",
+    "frontend",
+    "tds"
+  ],
+  "url": "consumir-dados-produtos"
+}
