@@ -12,6 +12,7 @@ Os guias abaixo foram desenvolvidos no formato Google Codelabs para facilitar o 
 * [Roteamento, Estado e Ciclo de Vida com React Router](https://alecarlosjesus.github.io/aula-code-labs/react-router-estado-ciclo-de-vida/)
 * [Guia Passo a Passo: Carregando e Listando Produtos em Tabela (React + TypeScript)](https://alecarlosjesus.github.io/aula-code-labs/consumir-dados-produtos/)
 * [Dominando Ícones no React (react-icons)](https://alecarlosjesus.github.io/aula-code-labs/react-icons-vite/)
+* [Invocando o Drone de Comunicação: IBM Watson](https://alecarlosjesus.github.io/aula-code-labs/watson-react-ts/)
 * *(Novas aulas serão adicionadas aqui...)*
 
 ---
