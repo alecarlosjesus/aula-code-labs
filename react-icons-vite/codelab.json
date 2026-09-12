@@ -1,0 +1,28 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-09-11T12:33:08-03:00",
+  "id": "react-icons-vite",
+  "duration": 55,
+  "title": "Dominando Ícones no React (react-icons)",
+  "authors": "TDS Professor",
+  "summary": "Guia Definitivo: Como utilizar React Icons no Vite com TypeScript",
+  "source": "react-icons-vite.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "react",
+    "typescript",
+    "frontend"
+  ],
+  "tags": [
+    "fiap",
+    "frontend",
+    "tds"
+  ],
+  "url": "react-icons-vite"
+}

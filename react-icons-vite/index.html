@@ -1,0 +1,206 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Dominando Ícones no React (react-icons)</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="react-icons-vite"
+                  title="Dominando Ícones no React (react-icons)"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="Por que usar o React Icons?" duration="5">
+        <p>No passado, para colocar um ícone de &#34;lixeira&#34; ou &#34;lápis&#34; em um site, você precisava baixar uma imagem PNG, colocar na pasta do projeto e usar a tag <code><img></code>. Isso deixava o site pesado e era difícil mudar a cor do ícone.</p>
+<p>Hoje, usamos o <strong>React Icons</strong>. Ele é uma biblioteca que reúne os pacotes de ícones mais famosos do mundo (como FontAwesome, Material Design e Feather Icons) e os transforma em <strong>Componentes React</strong>.</p>
+<p><strong>Vantagens:</strong></p>
+<ul>
+<li><strong>Leveza:</strong> O site só carrega os ícones que você realmente usar.</li>
+<li><strong>Vetor (SVG):</strong> Eles não perdem qualidade se você der zoom.</li>
+<li><strong>Fácil estilização:</strong> Você muda a cor e o tamanho do ícone alterando propriedades (props), igual fazemos com textos.</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Passo 1: Instalação do Pacote" duration="5">
+        <p>Abra o terminal do VS Code, certifique-se de que está dentro da pasta do seu projeto e execute o comando abaixo:</p>
+<pre><code language="language-bash" class="language-bash">npm i react-icons
+</code></pre>
+<p><strong>Nota sobre o TypeScript:</strong> Muitas bibliotecas exigem que você instale um pacote extra de tipagem (ex: <code>@types/nome-da-biblioteca</code>). A boa notícia é que o <code>react-icons</code> já vem com suporte nativo ao TypeScript. O comando acima é tudo que você precisa!</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Passo 2: Como escolher e importar um ícone" duration="10">
+        <p>O React Icons funciona como um grande catálogo de coleções. Para usar um ícone, você precisa entender a <strong>regra do prefixo</strong>.</p>
+<ol type="1">
+<li>Acesse o site oficial: <a href="https://react-icons.github.io/react-icons/" target="_blank">https://react-icons.github.io/react-icons/</a></li>
+<li>Use a barra de pesquisa (Search) para procurar um ícone (dica: pesquise em inglês, ex: <em>trash</em>, <em>edit</em>, <em>user</em>).</li>
+<li>Repare no nome do ícone escolhido. As duas primeiras letras indicam de qual coleção ele veio. <ul>
+<li>Exemplo: <code>FaTrash</code> vem do <strong>F</strong>ont<strong>A</strong>wesome.</li>
+<li>Exemplo: <code>MdEdit</code> vem do <strong>M</strong>aterial <strong>D</strong>esign.</li>
+<li>Exemplo: <code>FiUser</code> vem do <strong>F</strong>eather <strong>I</strong>cons.</li>
+</ul>
+</li>
+</ol>
+<p><strong>A regra de importação é:</strong> Você deve importar o ícone da pasta correspondente às suas duas primeiras letras, tudo em minúsculo.</p>
+<pre><code language="language-tsx" class="language-tsx">// ❌ Errado: Importar de forma genérica
+import { FaTrash } from &#39;react-icons&#39;;
+
+// ✅ Certo: O ícone começa com &#39;Fa&#39;, então importamos da pasta &#39;/fa&#39;
+import { FaTrash } from &#39;react-icons/fa&#39;;
+
+// ✅ Certo: O ícone começa com &#39;Md&#39;, então importamos da pasta &#39;/md&#39;
+import { MdEdit } from &#39;react-icons/md&#39;;
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Passo 3: Mão na Massa (Uso Básico)" duration="10">
+        <p>Vamos criar um componente de botão simples para ver o ícone funcionando na prática.</p>
+<p>Crie um arquivo chamado <code>BotaoDeletar.tsx</code> e cole o código abaixo. Leia os comentários para entender como o ícone é inserido.</p>
+<pre><code language="language-tsx" class="language-tsx">// 1. Importamos o ícone de lixeira da coleção FontAwesome (fa)
+import { FaTrash } from &#39;react-icons/fa&#39;;
+
+export default function BotaoDeletar() {
+  return (
+    // Um botão HTML comum
+    &lt;button style=&#123;&#123; backgroundColor: &#39;#ff003c&#39;, color: &#39;white&#39;, padding: &#39;10px&#39; }}&gt;
+      
+      {/* 2. O ícone é chamado como se fosse uma tag HTML normal (um componente) */}
+      &lt;FaTrash /&gt; 
+      
+      {/* 3. Colocamos um espaço e o texto do botão */}
+      {&#39; &#39;} Excluir
+    &lt;/button&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Passo 4: Mudando Tamanho e Cor (Props do Ícone)" duration="10">
+        <p>O ícone aceita configurações chamadas de <strong>Props</strong>. As duas mais importantes são:</p>
+<ul>
+<li><code>size</code>: O tamanho do ícone (em pixels).</li>
+<li><code>color</code>: A cor do ícone (pode ser o nome da cor em inglês ou o código Hexadecimal).</li>
+</ul>
+<p>Veja como configurar:</p>
+<pre><code language="language-tsx" class="language-tsx">import { FaCheckCircle } from &#39;react-icons/fa&#39;;
+
+export default function MensagemSucesso() {
+  return (
+    &lt;div style=&#123;&#123; display: &#39;flex&#39;, alignItems: &#39;center&#39;, gap: &#39;10px&#39; }}&gt;
+      
+      {/* Aqui personalizamos o ícone passando o tamanho de 30px e a cor verde neon */}
+      &lt;FaCheckCircle size={30} color=&#34;#39ff14&#34; /&gt;
+      
+      &lt;p style=&#123;&#123; color: &#39;#39ff14&#39; }}&gt;Produto salvo com sucesso!&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Passo 5: Aplicando na Tabela de Produtos (Desafio Prático)" duration="15">
+        <p>Agora vamos juntar o que aprendemos com a Tabela de Produtos que criamos na aula anterior. Adicionaremos ícones visuais para as ações de &#34;Editar&#34; e &#34;Excluir&#34;.</p>
+<p>Abra o seu arquivo <code>Produtos/index.tsx</code> e modifique a parte dos botões de ação para ficar assim:</p>
+<pre><code language="language-tsx" class="language-tsx">// 1. Importamos os Hooks do React e o Link do React Router
+import { useState, useEffect } from &#39;react&#39;;
+import { Link } from &#39;react-router&#39;; // (Aviso: Em algumas versões pode ser &#39;react-router-dom&#39;)
+
+// 2. Importamos os ÍCONES: O lápis (MdEdit) e a Lixeira (FaTrash)
+import { MdEdit } from &#39;react-icons/md&#39;;
+import { FaTrash } from &#39;react-icons/fa&#39;;
+
+// 3. Importamos nossos dados
+import { TipoProduto } from &#39;../../types/types&#39;;
+import { listaProdutos } from &#39;../../data/listaProdutos&#39;;
+
+export default function Produtos() {
+  const [produtos, setProdutos] = useState&lt;TipoProduto[]&gt;([]);
+
+  useEffect(() =&gt; {
+    setProdutos(listaProdutos);
+  }, []);
+
+  return (
+    &lt;main style=&#123;&#123; padding: &#39;20px&#39;, backgroundColor: &#39;#0d0d0d&#39;, color: &#39;#39ff14&#39;, minHeight: &#39;100vh&#39; }}&gt;
+      &lt;h1&gt;Painel de Produtos com Ícones&lt;/h1&gt;
+      
+      &lt;table border={1} cellPadding={10} style=&#123;&#123; width: &#39;100%&#39;, borderCollapse: &#39;collapse&#39;, borderColor: &#39;#39ff14&#39; }}&gt;
+        &lt;thead&gt;
+          &lt;tr style=&#123;&#123; backgroundColor: &#39;#1a1a1a&#39;, color: &#39;#ff00ff&#39; }}&gt;
+            &lt;th&gt;ID&lt;/th&gt;
+            &lt;th&gt;Nome&lt;/th&gt;
+            &lt;th&gt;Ações&lt;/th&gt;
+          &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+          {produtos.map((item) =&gt; (
+            &lt;tr key={item.id} style=&#123;&#123; borderBottom: &#39;1px solid #39ff14&#39; }}&gt;
+              &lt;td&gt;{item.id}&lt;/td&gt;
+              &lt;td&gt;{item.nome}&lt;/td&gt;
+              
+              {/* --- COLUNA DE AÇÕES COM OS ÍCONES --- */}
+              &lt;td style=&#123;&#123; display: &#39;flex&#39;, gap: &#39;15px&#39; }}&gt;
+                
+                {/* Botão de Editar usando o Ícone de Lápis */}
+                &lt;Link to={`/editar-produtos/${item.id}`} style=&#123;&#123; color: &#39;#00ffff&#39;, textDecoration: &#39;none&#39;, display: &#39;flex&#39;, alignItems: &#39;center&#39;, gap: &#39;5px&#39; }}&gt;
+                  {/* Tamanho 20px, herdando a cor azul cyan do Link */}
+                  &lt;MdEdit size={20} /&gt; 
+                  Editar
+                &lt;/Link&gt;
+
+                {/* Botão de Excluir usando o Ícone de Lixeira */}
+                &lt;button style=&#123;&#123; backgroundColor: &#39;transparent&#39;, border: &#39;none&#39;, color: &#39;#ff003c&#39;, cursor: &#39;pointer&#39;, display: &#39;flex&#39;, alignItems: &#39;center&#39;, gap: &#39;5px&#39; }}&gt;
+                  {/* Tamanho 18px e cor vermelha para alerta de perigo */}
+                  &lt;FaTrash size={18} color=&#34;#ff003c&#34; /&gt; 
+                  Excluir
+                &lt;/button&gt;
+
+              &lt;/td&gt;
+            &lt;/tr&gt;
+          ))}
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-09-11T12:27:47-03:00",
+  "id": "consumir-dados-produtos",
+  "duration": 45,
+  "title": "Carregando e Listando Produtos na Tela",
+  "authors": "TDS Professor",
+  "summary": "Guia Definitivo: Listando Produtos com React, TypeScript e Hooks",
+  "source": "consumir-dados-produtos.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "react",
+    "typescript",
+    "web"
+  ],
+  "tags": [
+    "fiap",
+    "frontend",
+    "tds"
+  ],
+  "url": "consumir-dados-produtos"
+}
