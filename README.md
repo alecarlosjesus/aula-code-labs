@@ -9,12 +9,10 @@ Os guias abaixo foram desenvolvidos no formato Google Codelabs para facilitar o 
 Clique no link da aula desejada para abrir o tutorial interativo:
 
 * [Roteamento, Estado e Ciclo de Vida com React Router](https://alecarlosjesus.github.io/aula-code-labs/react-router-estado-ciclo-de-vida/)
+* [Invocando o Drone de Comunicação: IBM Watson](https://alecarlosjesus.github.io/aula-code-labs/watson-react-ts/)
+
 * *(Novas aulas serão adicionadas aqui...)*
 
 ---
-
-## ⚙️ Como utilizar este repositório (Para Professores/Monitores)
-
-Este repositório utiliza a ferramenta `claat` (Codelabs as a Thing) para gerar os sites estáticos.
 
 

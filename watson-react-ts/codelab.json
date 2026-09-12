@@ -1,0 +1,28 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-09-12T08:27:08-03:00",
+  "id": "watson-react-ts",
+  "duration": 40,
+  "title": "Invocando o Drone de Comunicação: IBM Watson",
+  "authors": "TDS Professor",
+  "summary": "Guia: Como invocar o Robô do IBM Watson no seu Site React",
+  "source": "watson-react.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "react",
+    "typescript",
+    "api"
+  ],
+  "tags": [
+    "fiap",
+    "frontend",
+    "tds"
+  ],
+  "url": "watson-react-ts"
+}

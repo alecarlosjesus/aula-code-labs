@@ -1,0 +1,159 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Invocando o Drone de Comunicação: IBM Watson</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="watson-react-ts"
+                  title="Invocando o Drone de Comunicação: IBM Watson"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="O que é o IBM Watson Assistant?" duration="5">
+        <p>Imagine que o seu site é uma Base Militar Cyberpunk e você precisa de um &#34;Drone&#34; de comunicação que fique flutuando no canto da tela, pronto para responder às perguntas dos visitantes.</p>
+<p>Esse Drone é o <strong>IBM Watson Assistant</strong>. Ele é um robô de Inteligência Artificial criado pela IBM.</p>
+<p>Nossa missão hoje é instalar esse robô no nosso projeto React. O desafio é que o Watson não foi feito com peças normais de React, ele é um código de fora. Então, precisaremos &#34;hackear&#34; nosso site amigavelmente para permitir que o robô entre.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Passo 1: O Crachá VIP (Tipagem no TypeScript)" duration="10">
+        <p>O TypeScript é como o segurança da porta da nossa base. Se tentarmos colocar o robô da IBM lá dentro sem avisar, o segurança vai bloquear o código dizendo: <em>&#34;Ei, eu não conheço esse tal de Watson!&#34;</em>.</p>
+<p>Precisamos criar um &#34;Crachá VIP&#34; avisando que o Watson tem permissão para usar o objeto global do navegador, que chamamos de <code>window</code>.</p>
+<p>Crie um arquivo chamado <code>WatsonChat.tsx</code> na sua pasta <code>src/components</code> e comece com o código abaixo:</p>
+<pre><code language="language-tsx" class="language-tsx">// 1. Chamamos a ferramenta useEffect do React (nosso gatilho de ações)
+import { useEffect } from &#39;react&#39;;
+
+// 2. O &#39;declare global&#39; é o nosso Mega-Fones. 
+// Estamos gritando para o TypeScript: &#34;Preste atenção nas regras globais do jogo!&#34;
+declare global {
+  
+  // 3. &#39;interface Window&#39; é o mapa do navegador. 
+  // Estamos dizendo que dentro desse mapa, existe um espaço reservado para o Watson.
+  interface Window {
+    // 4. &#39;any&#39; significa que não vamos ser rigorosos com o formato dos dados agora.
+    watsonAssistantChatOptions: any; 
+  }
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Passo 2: Construindo a Antena (O Componente)" duration="15">
+        <p>Agora que o segurança deixou o robô entrar, vamos construir a Antena que chama o robô da nuvem da IBM para o nosso computador.</p>
+<p>Continue no mesmo arquivo <code>WatsonChat.tsx</code> e cole a segunda parte do código:</p>
+<pre><code language="language-tsx" class="language-tsx">// 1. Criamos a função do nosso componente. 
+export default function WatsonChat() {
+  
+  // 2. O useEffect é a regra: &#34;Faça isso assim que a tela ligar&#34;.
+  useEffect(() =&gt; {
+    
+    // 3. Aqui estamos configurando o &#34;Cérebro&#34; do robô com as chaves secretas da IBM.
+    // DICA: Você vai trocar esses IDs falsos pelos verdadeiros que a IBM te der!
+    window.watsonAssistantChatOptions = {
+      integrationID: &#34;COLE_O_SEU_ID_AQUI&#34;, // O código de barras do seu robô
+      region: &#34;us-south&#34;,                  // O país onde o servidor dele mora
+      serviceInstanceID: &#34;COLE_A_SUA_INSTANCIA_AQUI&#34;, // A senha do servidor
+      
+      // 4. onLoad é a ordem: &#34;Quando você terminar de baixar, ligue e apareça (render)!&#34;
+      onLoad: async (instance: any) =&gt; {
+        await instance.render();
+      }
+    };
+
+    // 5. O setTimeout é um truque ninja. Ele diz: 
+    // &#34;Espere o site principal carregar primeiro, para não deixar o site lento, e só depois chame o robô.&#34;
+    const chamarRobo = setTimeout(() =&gt; {
+      
+      // a) Criamos um elemento de script (é como criar um cabo USB virtual)
+      const script = document.createElement(&#39;script&#39;);
+      
+      // b) Conectamos esse cabo no servidor da IBM onde o código do Watson está
+      script.src = &#34;https://web-chat.global.assistant.watson.appdomain.cloud/versions/&#34; + 
+                   (window.watsonAssistantChatOptions.clientVersion || &#39;latest&#39;) + 
+                   &#34;/WatsonAssistantChatEntry.js&#34;;
+                   
+      // c) Plugamos o cabo na &#34;cabeça&#34; (head) do nosso site!
+      document.head.appendChild(script);
+      
+    }, 0);
+
+    // 6. A regra de limpeza. Se o jogador sair da tela muito rápido, cancelamos a chamada do robô.
+    return () =&gt; clearTimeout(chamarRobo);
+    
+  }, []); // A lista vazia [] significa: &#34;Só chame o robô UMA vez na vida&#34;.
+
+  // 7. Esse componente retorna &#39;null&#39; (vazio), 
+  // porque o robô da IBM se desenha sozinho na tela. Nós não precisamos usar HTML aqui!
+  return null; 
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Passo 3: Colocando o Robô na Base Principal" duration="10">
+        <p>Se a gente colocar o <code>WatsonChat</code> dentro da tela de &#34;Produtos&#34;, quando o usuário for para a tela de &#34;Contato&#34;, o robô vai explodir e sumir. Nós queremos que o robô seja como uma mochila, que vai com o usuário para todas as salas!</p>
+<p>Para fazer isso, temos que colocar ele no <code>App.tsx</code> (a nossa base principal), <strong>fora</strong> da televisão que muda de canal (o nosso <strong>&lt;Outlet /&gt;</strong>).</p>
+<p>Abra o arquivo <code>src/App.tsx</code> e monte assim:</p>
+<pre><code language="language-tsx" class="language-tsx">// 1. Importamos as ferramentas do roteador
+import { Outlet, Link } from &#39;react-router&#39;;
+
+// 2. Importamos a antena do robô que acabamos de construir
+import WatsonChat from &#39;./components/WatsonChat&#39;;
+
+export default function App() {
+  return (
+    // Fragmento &lt;&gt; (a caixa invisível do React)
+    &lt;&gt;
+      &lt;header style=&#123;&#123; padding: &#39;20px&#39;, borderBottom: &#39;2px solid #39ff14&#39; }}&gt;
+        &lt;nav&gt;
+          &lt;Link to=&#34;/&#34; style=&#123;&#123; color: &#39;#00ffff&#39; }}&gt;Início&lt;/Link&gt; | 
+          &lt;Link to=&#34;/produtos&#34; style=&#123;&#123; color: &#39;#00ffff&#39; }}&gt;Produtos&lt;/Link&gt;
+        &lt;/nav&gt;
+      &lt;/header&gt;
+
+      {/* 3. O OUTLET: É a tela da TV. Aqui as páginas ficam trocando... */}
+      &lt;Outlet /&gt;
+
+      {/* 4. O WATSON: Fica do lado de fora da TV! 
+          Assim, não importa qual página carregue no Outlet, o robô continua vivo flutuando no canto! */}
+      &lt;WatsonChat /&gt;
+    &lt;/&gt;
+  );
+}
+</code></pre>
+<p>Pronto! Ao ligar o projeto com <code>npm run dev</code>, você verá o botão flutuante de chat azul no canto inferior direito da sua tela verde e preta. A antena está ligada e o Drone está operante!</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
