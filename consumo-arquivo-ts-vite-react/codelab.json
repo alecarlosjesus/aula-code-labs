@@ -1,0 +1,35 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-09-15T18:32:02-03:00",
+  "id": "consumo-arquivo-ts-vite-react",
+  "duration": 1260,
+  "title": "Consumo de arquivo TypeScript no Vite + React + TypeScript",
+  "authors": "Alexandre Carlos de Jesus",
+  "summary": "Aprenda a consumir um arquivo TypeScript local como fonte de dados em um projeto Vite com React e TypeScript, utilizando tipos, componentes, props, métodos de array, hooks e navegação entre Produtos e EditarProdutos.",
+  "source": "codelab-consumo-arquivo-ts-vite-react.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "web",
+    "react",
+    "typescript",
+    "vite",
+    "front-end"
+  ],
+  "tags": [
+    "arrays",
+    "dados-locais",
+    "hooks",
+    "react",
+    "rotas",
+    "tailwind",
+    "typescript",
+    "vite"
+  ],
+  "url": "consumo-arquivo-ts-vite-react"
+}

@@ -1,0 +1,2334 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Consumo de arquivo TypeScript no Vite &#43; React &#43; TypeScript</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="consumo-arquivo-ts-vite-react"
+                  title="Consumo de arquivo TypeScript no Vite &#43; React &#43; TypeScript"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="1. Visão geral do codelab" duration="20">
+        <p>Neste codelab, um arquivo chamado <code>produtos.ts</code> será usado como uma <strong>fonte local de dados</strong>. Ele terá uma lista de produtos escrita em TypeScript e será importado diretamente pelas páginas React.</p>
+<p>O comportamento lembrará o consumo de uma API porque teremos:</p>
+<ul>
+<li>uma fonte central de dados;</li>
+<li>tipos que descrevem os objetos;</li>
+<li>listagem dos produtos;</li>
+<li>busca e filtro;</li>
+<li>identificação de um produto pelo <code>id</code>;</li>
+<li>navegação da página de listagem para a página de edição;</li>
+<li>preenchimento de um formulário com os dados encontrados.</li>
+</ul>
+<p>Porém, existe uma diferença fundamental: o arquivo já faz parte do projeto. Não haverá requisição de rede, tempo de espera, carregamento externo ou programação assíncrona.</p>
+<h2 is-upgraded>Visão geral do caminho percorrido pelos dados</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Etapa</p>
+</td><td colspan="1" rowspan="1"><p>Arquivo ou componente</p>
+</td><td colspan="1" rowspan="1"><p>O que acontece</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>1</p>
+</td><td colspan="1" rowspan="1"><p><code>produto.ts</code></p>
+</td><td colspan="1" rowspan="1"><p>Define o formato obrigatório de um produto.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>2</p>
+</td><td colspan="1" rowspan="1"><p><code>produtos.ts</code></p>
+</td><td colspan="1" rowspan="1"><p>Cria e exporta o array <code>listaProdutos</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>3</p>
+</td><td colspan="1" rowspan="1"><p><code>routes/Produtos/index.tsx</code></p>
+</td><td colspan="1" rowspan="1"><p>Importa o array, aplica filtros e prepara a listagem.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>4</p>
+</td><td colspan="1" rowspan="1"><p><code>CardProduto.tsx</code></p>
+</td><td colspan="1" rowspan="1"><p>Recebe um produto por props e apresenta seus dados.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>5</p>
+</td><td colspan="1" rowspan="1"><p>Botão &#34;Editar produto&#34;</p>
+</td><td colspan="1" rowspan="1"><p>Informa o <code>id</code> do produto selecionado.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>6</p>
+</td><td colspan="1" rowspan="1"><p><code>useNavigate</code></p>
+</td><td colspan="1" rowspan="1"><p>Abre <code>/editar-produtos/ID</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>7</p>
+</td><td colspan="1" rowspan="1"><p><code>routes/EditarProdutos/index.tsx</code></p>
+</td><td colspan="1" rowspan="1"><p>Lê o <code>id</code> da URL e procura o objeto correspondente.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>8</p>
+</td><td colspan="1" rowspan="1"><p><code>FormularioEdicao</code></p>
+</td><td colspan="1" rowspan="1"><p>Recebe o produto encontrado e apresenta os campos preenchidos.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Projeto considerado</h2>
+<p>O projeto já existe e se chama:</p>
+<pre><code language="language-text" class="language-text">my-app
+</code></pre>
+<p>As seguintes rotas já estão configuradas:</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>URL</p>
+</td><td colspan="1" rowspan="1"><p>Componente</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>/</code></p>
+</td><td colspan="1" rowspan="1"><p><code>routes/Home/index.tsx</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>/produtos</code></p>
+</td><td colspan="1" rowspan="1"><p><code>routes/Produtos/index.tsx</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>/editar-produtos/:id</code></p>
+</td><td colspan="1" rowspan="1"><p><code>routes/EditarProdutos/index.tsx</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>erro de rota</p>
+</td><td colspan="1" rowspan="1"><p><code>routes/Error/index.tsx</code>, por meio de <code>errorElement</code></p>
+</td></tr>
+</table>
+<p>Este material preservará exatamente essa convenção: nomes das pastas de componentes com inicial maiúscula, arquivos <code>index.tsx</code> e URLs em letras minúsculas.</p>
+<h2 is-upgraded>O que você aprenderá</h2>
+<p>Ao final, você conseguirá:</p>
+<ul>
+<li>explicar o que significa importar dados de um arquivo <code>.ts</code>;</li>
+<li>criar <code>type</code>, união de tipos e <code>interface</code>;</li>
+<li>tipar um array de objetos;</li>
+<li>distinguir importação de tipo e importação de valor;</li>
+<li>usar <code>map</code>, <code>filter</code> e <code>find</code> corretamente;</li>
+<li>usar <code>toLowerCase</code>, <code>includes</code> e <code>trim</code> durante uma busca;</li>
+<li>explicar <code>useState</code>, <code>useNavigate</code> e <code>useParams</code>;</li>
+<li>enviar o <code>id</code> do produto pela URL;</li>
+<li>localizar o produto correspondente em <code>EditarProdutos</code>;</li>
+<li>preencher campos controlados com os dados do produto;</li>
+<li>entender o que é alterado apenas na memória;</li>
+<li>reconhecer quando <code>useEffect</code> não é necessário.</li>
+</ul>
+<h2 is-upgraded>Forma de estudo</h2>
+<p>Em cada etapa:</p>
+<ol type="1">
+<li>entenda a ideia;</li>
+<li>leia o código;</li>
+<li>digite uma parte de cada vez;</li>
+<li>preveja o resultado;</li>
+<li>teste no navegador;</li>
+<li>compare com a explicação;</li>
+<li>pratique antes de avançar.</li>
+</ol>
+<aside class="special"><p> Não copie todos os arquivos de uma vez. O objetivo é acompanhar o caminho percorrido pelo dado e compreender a responsabilidade de cada arquivo.</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="2. O modelo mental: arquivo local não é servidor" duration="35">
+        <p>Antes de escrever código, precisamos separar duas ideias.</p>
+<h2 is-upgraded>Fonte local de dados</h2>
+<p>Quando importamos um arquivo TypeScript:</p>
+<pre><code language="language-ts" class="language-ts">import { listaProdutos } from &#34;../../data/produtos&#34;;
+</code></pre>
+<p>o Vite encontra esse módulo durante o desenvolvimento e durante a construção do projeto. O array exportado passa a fazer parte da aplicação.</p>
+<p>O fluxo é direto:</p>
+<pre><code language="language-text" class="language-text">produtos.ts
+    ↓ import
+routes/Produtos/index.tsx
+    ↓ props
+CardProduto.tsx
+</code></pre>
+<h2 is-upgraded>API verdadeira</h2>
+<p>Em uma API verdadeira, a aplicação normalmente precisa solicitar dados a outro endereço:</p>
+<pre><code language="language-text" class="language-text">React → rede → servidor → banco de dados → resposta → React
+</code></pre>
+<p>Esse processo pode demorar, falhar ou depender de autenticação. Nada disso acontece neste exercício.</p>
+<h2 is-upgraded>Comparação</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Arquivo <code>.ts</code> local</p>
+</td><td colspan="1" rowspan="1"><p>API verdadeira</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Faz parte do projeto.</p>
+</td><td colspan="1" rowspan="1"><p>Está em outro serviço ou servidor.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>É importado diretamente.</p>
+</td><td colspan="1" rowspan="1"><p>É solicitado pela rede.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Os dados chegam imediatamente ao módulo.</p>
+</td><td colspan="1" rowspan="1"><p>A resposta pode demorar.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Não possui erro HTTP.</p>
+</td><td colspan="1" rowspan="1"><p>Pode devolver 404, 500 e outros códigos.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Alterar a tela não altera o arquivo-fonte.</p>
+</td><td colspan="1" rowspan="1"><p>O servidor pode persistir alterações.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Excelente para aprendizado e protótipos.</p>
+</td><td colspan="1" rowspan="1"><p>Necessária para dados compartilhados e persistentes.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>&#34;Como se fosse uma API&#34; significa o quê?</h2>
+<p>Significa que organizaremos o projeto como se existisse uma fonte central de dados. As páginas não criarão objetos espalhados pelo JSX. Elas receberão os dados de um arquivo especializado.</p>
+<p>Não significa que o arquivo local ganhou recursos de servidor.</p>
+<aside class="warning"><p> Se o usuário editar um produto na tela, o arquivo <code>produtos.ts</code> não será reescrito. O navegador não possui autorização para modificar o código-fonte do projeto dessa forma.</p>
+</aside>
+<h2 is-upgraded>Verificação de compreensão</h2>
+<p>Responda antes de continuar:</p>
+<ol type="1">
+<li>O navegador precisa aguardar uma resposta de rede para importar <code>produtos.ts</code>?</li>
+<li>Alterar um campo do formulário modifica fisicamente o arquivo?</li>
+<li>Por que ainda é útil centralizar os dados?</li>
+</ol>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="3. Conferindo a estrutura do projeto" duration="25">
+        <p>O projeto final utilizará esta organização:</p>
+<pre><code language="language-text" class="language-text">my-app/
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── Cabecalho.tsx
+│   │   ├── CardProduto.tsx
+│   │   └── Rodape.tsx
+│   ├── data/
+│   │   └── produtos.ts
+│   ├── routes/
+│   │   ├── EditarProdutos/
+│   │   │   └── index.tsx
+│   │   ├── Error/
+│   │   │   └── index.tsx
+│   │   ├── Home/
+│   │   │   └── index.tsx
+│   │   └── Produtos/
+│   │       └── index.tsx
+│   ├── types/
+│   │   └── produto.ts
+│   ├── App.tsx
+│   └── main.tsx
+├── package.json
+└── vite.config.ts
+</code></pre>
+<h2 is-upgraded>Responsabilidade de cada pasta</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Pasta</p>
+</td><td colspan="1" rowspan="1"><p>Responsabilidade</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>components</code></p>
+</td><td colspan="1" rowspan="1"><p>Componentes reutilizáveis, como o card.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>data</code></p>
+</td><td colspan="1" rowspan="1"><p>Fonte local de dados.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>routes</code></p>
+</td><td colspan="1" rowspan="1"><p>Componentes relacionados às URLs, cada um em uma pasta com <code>index.tsx</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>types</code></p>
+</td><td colspan="1" rowspan="1"><p>Contratos TypeScript compartilhados.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Por que separar <code>types</code> e <code>data</code>?</h2>
+<p>O arquivo de tipos responde:</p>
+<p>Qual é o formato válido de um produto?</p>
+<p>O arquivo de dados responde:</p>
+<p>Quais produtos existem neste exemplo?</p>
+<p>Essa separação permite que páginas, componentes e dados utilizem o mesmo contrato.</p>
+<h2 is-upgraded>Antes de criar arquivos</h2>
+<p>No terminal, entre no projeto e confirme que ele funciona:</p>
+<pre><code language="language-bash" class="language-bash">cd my-app
+npm run dev
+</code></pre>
+<p>Abra o endereço mostrado pelo Vite e teste as rotas existentes.</p>
+<h2 is-upgraded>Ponto de conferência das rotas</h2>
+<p>Você não precisa recriar o roteamento se ele já funciona. Apenas confira se o arquivo <code>src/main.tsx</code> segue a estrutura ensinada:</p>
+<pre><code language="language-tsx" class="language-tsx">import { StrictMode } from &#34;react&#34;;
+import { createRoot } from &#34;react-dom/client&#34;;
+import { createBrowserRouter, RouterProvider } from &#34;react-router&#34;;
+
+import App from &#34;./App.tsx&#34;;
+import EditarProdutos from &#34;./routes/EditarProdutos/index.tsx&#34;;
+import Error from &#34;./routes/Error/index.tsx&#34;;
+import Home from &#34;./routes/Home/index.tsx&#34;;
+import Produtos from &#34;./routes/Produtos/index.tsx&#34;;
+
+const router = createBrowserRouter([
+  {
+    path: &#34;/&#34;,
+    element: &lt;App /&gt;,
+    errorElement: &lt;Error /&gt;,
+    children: [
+      {
+        path: &#34;/&#34;,
+        element: &lt;Home /&gt;,
+      },
+      {
+        path: &#34;/produtos&#34;,
+        element: &lt;Produtos /&gt;,
+      },
+      {
+        path: &#34;/editar-produtos/:id&#34;,
+        element: &lt;EditarProdutos /&gt;,
+      },
+    ],
+  },
+]);
+
+createRoot(document.getElementById(&#34;root&#34;)!).render(
+  &lt;StrictMode&gt;
+    &lt;RouterProvider router={router} /&gt;
+  &lt;/StrictMode&gt;,
+);
+</code></pre>
+<p>Como as páginas são filhas de <code>App</code>, o componente <code>App.tsx</code> precisa possuir um <code>Outlet</code>:</p>
+<pre><code language="language-tsx" class="language-tsx">import { Outlet } from &#34;react-router&#34;;
+import Cabecalho from &#34;./components/Cabecalho&#34;;
+import Rodape from &#34;./components/Rodape&#34;;
+
+export default function App() {
+  return (
+    &lt;div&gt;
+      &lt;Cabecalho /&gt;
+      &lt;Outlet /&gt;
+      &lt;Rodape /&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+<p><code>Outlet</code> é o espaço reservado no layout para a rota filha correspondente à URL atual. <code>Cabecalho</code> e <code>Rodape</code> permanecem ao redor de todas as páginas.</p>
+<aside class="special"><p> Se as rotas já funcionam, não altere tudo ao mesmo tempo. Primeiro adicione tipos e dados. Depois construa a listagem. Por último faça a edição.</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="4. Criando os tipos do produto" duration="60">
+        <p>Crie:</p>
+<pre><code language="language-text" class="language-text">src/types/produto.ts
+</code></pre>
+<p>Digite:</p>
+<pre><code language="language-ts" class="language-ts">export type CategoriaProduto =
+  | &#34;notebook&#34;
+  | &#34;smartphone&#34;
+  | &#34;acessorio&#34;;
+
+export type StatusProduto =
+  | &#34;disponivel&#34;
+  | &#34;baixo-estoque&#34;
+  | &#34;indisponivel&#34;;
+
+export interface Produto {
+  id: number;
+  nome: string;
+  preco: number;
+  categoria: CategoriaProduto;
+  status: StatusProduto;
+  estoque: number;
+  imagem: string;
+  descricao: string;
+}
+
+export type FiltroCategoria = &#34;todos&#34; | CategoriaProduto;
+
+export type FormularioProduto = Omit&lt;Produto, &#34;id&#34;&gt;;
+</code></pre>
+<h2 is-upgraded>Primeiro: o que <code>type</code> faz?</h2>
+<p><code>type</code> cria um nome para uma definição de tipo.</p>
+<pre><code language="language-ts" class="language-ts">type CategoriaProduto = &#34;notebook&#34; | &#34;smartphone&#34; | &#34;acessorio&#34;;
+</code></pre>
+<p>Não estamos criando uma variável chamada <code>CategoriaProduto</code>. Estamos criando uma regra usada pelo TypeScript.</p>
+<h2 is-upgraded>União de tipos</h2>
+<p>O símbolo <code>|</code> significa <strong>ou</strong>.</p>
+<pre><code language="language-text" class="language-text">&#34;notebook&#34; OU &#34;smartphone&#34; OU &#34;acessorio&#34;
+</code></pre>
+<p>Isto é válido:</p>
+<pre><code language="language-ts" class="language-ts">const categoria: CategoriaProduto = &#34;notebook&#34;;
+</code></pre>
+<p>Isto produz erro:</p>
+<pre><code language="language-ts" class="language-ts">const categoria: CategoriaProduto = &#34;televisao&#34;;
+</code></pre>
+<p>O erro aparece porque <code>"televisao"</code> não faz parte das opções permitidas.</p>
+<h2 is-upgraded>O que é uma interface?</h2>
+<p>A interface descreve o formato esperado de um objeto.</p>
+<pre><code language="language-ts" class="language-ts">export interface Produto {
+  id: number;
+  nome: string;
+}
+</code></pre>
+<p>Ela diz que todo produto precisa ter:</p>
+<ul>
+<li>uma propriedade <code>id</code> numérica;</li>
+<li>uma propriedade <code>nome</code> textual.</li>
+</ul>
+<h2 is-upgraded>Leia cada propriedade</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Propriedade</p>
+</td><td colspan="1" rowspan="1"><p>Tipo</p>
+</td><td colspan="1" rowspan="1"><p>Significado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>id</code></p>
+</td><td colspan="1" rowspan="1"><p><code>number</code></p>
+</td><td colspan="1" rowspan="1"><p>Identificador único.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>nome</code></p>
+</td><td colspan="1" rowspan="1"><p><code>string</code></p>
+</td><td colspan="1" rowspan="1"><p>Nome apresentado na tela.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>preco</code></p>
+</td><td colspan="1" rowspan="1"><p><code>number</code></p>
+</td><td colspan="1" rowspan="1"><p>Valor numérico usado em cálculos e formatação.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>categoria</code></p>
+</td><td colspan="1" rowspan="1"><p><code>CategoriaProduto</code></p>
+</td><td colspan="1" rowspan="1"><p>Uma das categorias permitidas.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>status</code></p>
+</td><td colspan="1" rowspan="1"><p><code>StatusProduto</code></p>
+</td><td colspan="1" rowspan="1"><p>Situação comercial do produto.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>estoque</code></p>
+</td><td colspan="1" rowspan="1"><p><code>number</code></p>
+</td><td colspan="1" rowspan="1"><p>Quantidade disponível.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>imagem</code></p>
+</td><td colspan="1" rowspan="1"><p><code>string</code></p>
+</td><td colspan="1" rowspan="1"><p>Caminho ou URL da imagem.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>descricao</code></p>
+</td><td colspan="1" rowspan="1"><p><code>string</code></p>
+</td><td colspan="1" rowspan="1"><p>Texto explicativo.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Ponto e vírgula dentro da interface</h2>
+<p>Em:</p>
+<pre><code language="language-ts" class="language-ts">nome: string;
+</code></pre>
+<ul>
+<li><code>nome</code> é a propriedade;</li>
+<li><code>:</code> pode ser lido como &#34;deve ser do tipo&#34;;</li>
+<li><code>string</code> é o tipo;</li>
+<li><code>;</code> encerra aquela declaração.</li>
+</ul>
+<h2 is-upgraded>Entendendo <code>FiltroCategoria</code></h2>
+<pre><code language="language-ts" class="language-ts">export type FiltroCategoria = &#34;todos&#34; | CategoriaProduto;
+</code></pre>
+<p>Isso equivale a permitir:</p>
+<pre><code language="language-text" class="language-text">&#34;todos&#34; | &#34;notebook&#34; | &#34;smartphone&#34; | &#34;acessorio&#34;
+</code></pre>
+<h2 is-upgraded>Entendendo <code>Omit</code></h2>
+<pre><code language="language-ts" class="language-ts">export type FormularioProduto = Omit&lt;Produto, &#34;id&#34;&gt;;
+</code></pre>
+<p><code>Omit</code> cria um novo tipo retirando propriedades de outro tipo.</p>
+<p>Aqui, o formulário terá todos os campos de <code>Produto</code>, menos <code>id</code>.</p>
+<p>O <code>id</code> fica de fora porque identifica o produto que já existe. O usuário editará nome, preço, estoque e demais informações, mas não trocará sua identidade.</p>
+<h2 is-upgraded>Exercício diagnóstico</h2>
+<p>Quais linhas são válidas?</p>
+<pre><code language="language-ts" class="language-ts">const a: CategoriaProduto = &#34;smartphone&#34;;
+const b: CategoriaProduto = &#34;monitor&#34;;
+const c: StatusProduto = &#34;baixo-estoque&#34;;
+const d: StatusProduto = &#34;acabando&#34;;
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="5. Criando a fonte local de dados" duration="70">
+        <p>Crie:</p>
+<pre><code language="language-text" class="language-text">src/data/produtos.ts
+</code></pre>
+<p>Digite:</p>
+<pre><code language="language-ts" class="language-ts">import type { Produto } from &#34;../types/produto&#34;;
+
+export const listaProdutos: Produto[] = [
+  {
+    id: 1,
+    nome: &#34;Notebook Pro 15&#34;,
+    preco: 5799.9,
+    categoria: &#34;notebook&#34;,
+    status: &#34;disponivel&#34;,
+    estoque: 12,
+    imagem: &#34;https://placehold.co/600x400/172554/ffffff?text=Notebook+Pro+15&#34;,
+    descricao: &#34;Notebook para desenvolvimento, estudos e produtividade.&#34;,
+  },
+  {
+    id: 2,
+    nome: &#34;Smartphone Connect X&#34;,
+    preco: 2899.9,
+    categoria: &#34;smartphone&#34;,
+    status: &#34;baixo-estoque&#34;,
+    estoque: 4,
+    imagem: &#34;https://placehold.co/600x400/14532d/ffffff?text=Connect+X&#34;,
+    descricao: &#34;Smartphone com tela de alta resolução e conexão 5G.&#34;,
+  },
+  {
+    id: 3,
+    nome: &#34;Mouse Precision&#34;,
+    preco: 189.9,
+    categoria: &#34;acessorio&#34;,
+    status: &#34;disponivel&#34;,
+    estoque: 30,
+    imagem: &#34;https://placehold.co/600x400/78350f/ffffff?text=Mouse+Precision&#34;,
+    descricao: &#34;Mouse ergonômico com seis botões configuráveis.&#34;,
+  },
+  {
+    id: 4,
+    nome: &#34;Notebook Air 13&#34;,
+    preco: 4299.9,
+    categoria: &#34;notebook&#34;,
+    status: &#34;baixo-estoque&#34;,
+    estoque: 3,
+    imagem: &#34;https://placehold.co/600x400/581c87/ffffff?text=Notebook+Air+13&#34;,
+    descricao: &#34;Notebook leve para mobilidade e tarefas acadêmicas.&#34;,
+  },
+  {
+    id: 5,
+    nome: &#34;Headset Focus&#34;,
+    preco: 349.9,
+    categoria: &#34;acessorio&#34;,
+    status: &#34;indisponivel&#34;,
+    estoque: 0,
+    imagem: &#34;https://placehold.co/600x400/7f1d1d/ffffff?text=Headset+Focus&#34;,
+    descricao: &#34;Headset com microfone e isolamento acústico.&#34;,
+  },
+  {
+    id: 6,
+    nome: &#34;Smartphone Start&#34;,
+    preco: 1599.9,
+    categoria: &#34;smartphone&#34;,
+    status: &#34;disponivel&#34;,
+    estoque: 18,
+    imagem: &#34;https://placehold.co/600x400/164e63/ffffff?text=Smartphone+Start&#34;,
+    descricao: &#34;Smartphone para comunicação, estudos e tarefas diárias.&#34;,
+  },
+];
+</code></pre>
+<h2 is-upgraded>Importação somente de tipo</h2>
+<pre><code language="language-ts" class="language-ts">import type { Produto } from &#34;../types/produto&#34;;
+</code></pre>
+<p><code>import type</code> informa que <code>Produto</code> será usado somente pelo TypeScript para conferência.</p>
+<p>Ele não representa um valor utilizado pelo navegador.</p>
+<h2 is-upgraded>Exportação nomeada</h2>
+<pre><code language="language-ts" class="language-ts">export const listaProdutos = ...
+</code></pre>
+<p>O <code>export</code> permite que outro módulo importe <code>listaProdutos</code> pelo mesmo nome.</p>
+<h2 is-upgraded>O que significa <code>Produto[]</code>?</h2>
+<pre><code language="language-ts" class="language-ts">const listaProdutos: Produto[] = [];
+</code></pre>
+<p>Os colchetes <code>[]</code> depois de <code>Produto</code> significam:</p>
+<p>array cujos itens devem obedecer à interface <code>Produto</code>.</p>
+<p>O TypeScript verificará cada objeto do array.</p>
+<h2 is-upgraded>Teste um erro proposital</h2>
+<p>Altere temporariamente:</p>
+<pre><code language="language-ts" class="language-ts">preco: 5799.9,
+</code></pre>
+<p>para:</p>
+<pre><code language="language-ts" class="language-ts">preco: &#34;5799.90&#34;,
+</code></pre>
+<p>O editor deverá informar que <code>string</code> não pode ser atribuída a <code>number</code>.</p>
+<p>Depois, desfaça a alteração.</p>
+<h2 is-upgraded>Por que o preço não contém <code>R$</code>?</h2>
+<p>Isto está correto:</p>
+<pre><code language="language-ts" class="language-ts">preco: 5799.9,
+</code></pre>
+<p>Isto dificultaria cálculos:</p>
+<pre><code language="language-ts" class="language-ts">preco: &#34;R$ 5.799,90&#34;,
+</code></pre>
+<p>O dado permanece numérico. A formatação em reais será feita no componente.</p>
+<h2 is-upgraded>Por que cada <code>id</code> deve ser único?</h2>
+<p>O <code>id</code> será usado para:</p>
+<ul>
+<li>fornecer a <code>key</code> durante o <code>map</code>;</li>
+<li>identificar o produto escolhido;</li>
+<li>transportar a identidade pela URL;</li>
+<li>localizar o objeto com <code>find</code>.</li>
+</ul>
+<p>Dois produtos com o mesmo <code>id</code> criariam ambiguidade.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="6. Fazendo a primeira importação em Produtos" duration="40">
+        <p>Abra:</p>
+<pre><code language="language-text" class="language-text">src/routes/Produtos/index.tsx
+</code></pre>
+<p>Comece com uma versão mínima:</p>
+<pre><code language="language-tsx" class="language-tsx">import { listaProdutos } from &#34;../../data/produtos&#34;;
+
+export default function Produtos() {
+  console.table(listaProdutos);
+
+  return (
+    &lt;main className=&#34;mx-auto max-w-7xl px-4 py-10&#34;&gt;
+      &lt;h1 className=&#34;text-3xl font-bold text-slate-900&#34;&gt;
+        Produtos
+      &lt;/h1&gt;
+
+      &lt;p className=&#34;mt-2 text-slate-600&#34;&gt;
+        Quantidade cadastrada: {listaProdutos.length}
+      &lt;/p&gt;
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+<h2 is-upgraded>Leia a importação</h2>
+<pre><code language="language-ts" class="language-ts">import { listaProdutos } from &#34;../../data/produtos&#34;;
+</code></pre>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Trecho</p>
+</td><td colspan="1" rowspan="1"><p>Explicação</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>import</code></p>
+</td><td colspan="1" rowspan="1"><p>Solicita algo exportado por outro módulo.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>{ listaProdutos }</code></p>
+</td><td colspan="1" rowspan="1"><p>Nome exato da exportação nomeada.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>from</code></p>
+</td><td colspan="1" rowspan="1"><p>Indica de onde vem o valor.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>../../</code></p>
+</td><td colspan="1" rowspan="1"><p>Sobe de <code>routes/Produtos</code> para <code>src</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>data/produtos</code></p>
+</td><td colspan="1" rowspan="1"><p>Entra em <code>data</code> e encontra <code>produtos.ts</code>.</p>
+</td></tr>
+</table>
+<p>Não é necessário escrever <code>.ts</code> no final do caminho.</p>
+<h2 is-upgraded><code>console.table</code></h2>
+<pre><code language="language-ts" class="language-ts">console.table(listaProdutos);
+</code></pre>
+<p>Esse comando apresenta arrays de objetos em formato de tabela no console do navegador.</p>
+<p>Para conferir:</p>
+<ol type="1">
+<li>abra <code>/produtos</code>;</li>
+<li>pressione <code>F12</code>;</li>
+<li>abra a guia <strong>Console</strong>;</li>
+<li>encontre a tabela;</li>
+<li>confirme as propriedades e os seis itens.</li>
+</ol>
+<h2 is-upgraded><code>length</code></h2>
+<pre><code language="language-tsx" class="language-tsx">{listaProdutos.length}
+</code></pre>
+<p><code>length</code> informa a quantidade de itens do array. Não é uma função, por isso não recebe parênteses.</p>
+<h2 is-upgraded>O ponto mais importante</h2>
+<p>Não precisamos de um hook para &#34;carregar&#34; essa lista. Quando o módulo <code>Produtos.tsx</code> é executado, <code>listaProdutos</code> já foi importada.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="7. Entendendo map antes de criar os cards" duration="55">
+        <p><code>map</code> percorre um array e cria um novo array com o resultado produzido para cada item.</p>
+<pre><code language="language-ts" class="language-ts">const nomes = listaProdutos.map((produto) =&gt; produto.nome);
+</code></pre>
+<p>Entrada simplificada:</p>
+<pre><code language="language-text" class="language-text">[
+  { nome: &#34;Notebook Pro 15&#34; },
+  { nome: &#34;Mouse Precision&#34; }
+]
+</code></pre>
+<p>Saída:</p>
+<pre><code language="language-text" class="language-text">[
+  &#34;Notebook Pro 15&#34;,
+  &#34;Mouse Precision&#34;
+]
+</code></pre>
+<p>No React, o novo array pode conter elementos JSX:</p>
+<pre><code language="language-tsx" class="language-tsx">&lt;ul&gt;
+  {listaProdutos.map((produto) =&gt; (
+    &lt;li key={produto.id}&gt;{produto.nome}&lt;/li&gt;
+  ))}
+&lt;/ul&gt;
+</code></pre>
+<h2 is-upgraded>Leia linha por linha</h2>
+<pre><code language="language-tsx" class="language-tsx">listaProdutos.map((produto) =&gt; (
+  &lt;li key={produto.id}&gt;{produto.nome}&lt;/li&gt;
+))
+</code></pre>
+<ol type="1">
+<li><code>listaProdutos</code> é o array original.</li>
+<li><code>.map</code> pede que cada item seja transformado.</li>
+<li><code>produto</code> é o item atual da repetição.</li>
+<li><code>=></code> separa a entrada da transformação.</li>
+<li>O JSX entre parênteses é devolvido para cada produto.</li>
+<li>O resultado é um array de elementos <code>li</code>.</li>
+</ol>
+<h2 is-upgraded>Por que usar <code>key</code>?</h2>
+<pre><code language="language-tsx" class="language-tsx">key={produto.id}
+</code></pre>
+<p>A <code>key</code> ajuda o React a identificar cada item entre renderizações.</p>
+<p>Uma boa <code>key</code> deve ser:</p>
+<ul>
+<li>única entre os itens irmãos;</li>
+<li>estável;</li>
+<li>ligada à identidade do dado.</li>
+</ul>
+<p>O <code>id</code> cumpre essas condições.</p>
+<h2 is-upgraded>Erro comum: usar chaves sem devolver JSX</h2>
+<p>Isto não devolve nada:</p>
+<pre><code language="language-tsx" class="language-tsx">listaProdutos.map((produto) =&gt; {
+  &lt;li&gt;{produto.nome}&lt;/li&gt;;
+});
+</code></pre>
+<p>Com chaves, escreva <code>return</code>:</p>
+<pre><code language="language-tsx" class="language-tsx">listaProdutos.map((produto) =&gt; {
+  return &lt;li key={produto.id}&gt;{produto.nome}&lt;/li&gt;;
+});
+</code></pre>
+<p>Ou use parênteses para retorno direto:</p>
+<pre><code language="language-tsx" class="language-tsx">listaProdutos.map((produto) =&gt; (
+  &lt;li key={produto.id}&gt;{produto.nome}&lt;/li&gt;
+));
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="8. Criando CardProduto e entendendo props" duration="70">
+        <p>Crie:</p>
+<pre><code language="language-text" class="language-text">src/components/CardProduto.tsx
+</code></pre>
+<p>Digite:</p>
+<pre><code language="language-tsx" class="language-tsx">import type { Produto } from &#34;../types/produto&#34;;
+
+interface CardProdutoProps {
+  produto: Produto;
+  onEditar: (id: number) =&gt; void;
+}
+
+export default function CardProduto({
+  produto,
+  onEditar,
+}: CardProdutoProps) {
+  const precoFormatado = produto.preco.toLocaleString(&#34;pt-BR&#34;, {
+    style: &#34;currency&#34;,
+    currency: &#34;BRL&#34;,
+  });
+
+  return (
+    &lt;article className=&#34;overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm&#34;&gt;
+      &lt;img
+        src={produto.imagem}
+        alt={`Imagem ilustrativa de ${produto.nome}`}
+        className=&#34;h-48 w-full object-cover&#34;
+      /&gt;
+
+      &lt;div className=&#34;space-y-3 p-5&#34;&gt;
+        &lt;div className=&#34;flex items-start justify-between gap-3&#34;&gt;
+          &lt;h2 className=&#34;text-xl font-semibold text-slate-900&#34;&gt;
+            {produto.nome}
+          &lt;/h2&gt;
+
+          &lt;span className=&#34;rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700&#34;&gt;
+            {produto.categoria}
+          &lt;/span&gt;
+        &lt;/div&gt;
+
+        &lt;p className=&#34;text-sm leading-6 text-slate-600&#34;&gt;
+          {produto.descricao}
+        &lt;/p&gt;
+
+        &lt;dl className=&#34;grid grid-cols-2 gap-3 text-sm&#34;&gt;
+          &lt;div&gt;
+            &lt;dt className=&#34;text-slate-500&#34;&gt;Preço&lt;/dt&gt;
+            &lt;dd className=&#34;font-semibold text-slate-900&#34;&gt;
+              {precoFormatado}
+            &lt;/dd&gt;
+          &lt;/div&gt;
+
+          &lt;div&gt;
+            &lt;dt className=&#34;text-slate-500&#34;&gt;Estoque&lt;/dt&gt;
+            &lt;dd className=&#34;font-semibold text-slate-900&#34;&gt;
+              {produto.estoque} unidades
+            &lt;/dd&gt;
+          &lt;/div&gt;
+        &lt;/dl&gt;
+
+        &lt;p className=&#34;text-sm font-medium text-slate-700&#34;&gt;
+          Status: {produto.status}
+        &lt;/p&gt;
+
+        &lt;button
+          type=&#34;button&#34;
+          onClick={() =&gt; onEditar(produto.id)}
+          className=&#34;w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2&#34;
+        &gt;
+          Editar produto
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/article&gt;
+  );
+}
+</code></pre>
+<h2 is-upgraded>O componente recebe duas props</h2>
+<pre><code language="language-ts" class="language-ts">interface CardProdutoProps {
+  produto: Produto;
+  onEditar: (id: number) =&gt; void;
+}
+</code></pre>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Prop</p>
+</td><td colspan="1" rowspan="1"><p>Tipo</p>
+</td><td colspan="1" rowspan="1"><p>Responsabilidade</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>produto</code></p>
+</td><td colspan="1" rowspan="1"><p><code>Produto</code></p>
+</td><td colspan="1" rowspan="1"><p>Fornece os dados exibidos.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>onEditar</code></p>
+</td><td colspan="1" rowspan="1"><p>função</p>
+</td><td colspan="1" rowspan="1"><p>Avisa ao componente pai qual <code>id</code> deve ser editado.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Leia o tipo da função</h2>
+<pre><code language="language-ts" class="language-ts">onEditar: (id: number) =&gt; void;
+</code></pre>
+<ul>
+<li>a função recebe <code>id</code>;</li>
+<li>o <code>id</code> deve ser <code>number</code>;</li>
+<li><code>void</code> indica que o componente não espera um valor devolvido.</li>
+</ul>
+<h2 is-upgraded>Desestruturação das props</h2>
+<pre><code language="language-tsx" class="language-tsx">function CardProduto({ produto, onEditar }: CardProdutoProps)
+</code></pre>
+<p>Sem desestruturação, seria necessário escrever:</p>
+<pre><code language="language-tsx" class="language-tsx">function CardProduto(props: CardProdutoProps) {
+  props.produto.nome;
+  props.onEditar(props.produto.id);
+}
+</code></pre>
+<p>Com desestruturação, usamos diretamente <code>produto</code> e <code>onEditar</code>.</p>
+<h2 is-upgraded>Formatação do preço</h2>
+<pre><code language="language-ts" class="language-ts">produto.preco.toLocaleString(&#34;pt-BR&#34;, {
+  style: &#34;currency&#34;,
+  currency: &#34;BRL&#34;,
+});
+</code></pre>
+<p>O valor continua numérico nos dados. O componente apenas cria uma representação apropriada para reais brasileiros.</p>
+<h2 is-upgraded>Clique no botão</h2>
+<pre><code language="language-tsx" class="language-tsx">onClick={() =&gt; onEditar(produto.id)}
+</code></pre>
+<p>A função não é executada durante a renderização. Ela será executada quando o botão for acionado.</p>
+<p>Não escreva:</p>
+<pre><code language="language-tsx" class="language-tsx">onClick={onEditar(produto.id)}
+</code></pre>
+<p>Essa forma tentaria executar <code>onEditar</code> imediatamente.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="9. Renderizando CardProduto com map" duration="45">
+        <p>Atualize temporariamente <code>routes/Produtos/index.tsx</code>:</p>
+<pre><code language="language-tsx" class="language-tsx">import CardProduto from &#34;../../components/CardProduto&#34;;
+import { listaProdutos } from &#34;../../data/produtos&#34;;
+
+export default function Produtos() {
+  function testarEdicao(id: number) {
+    console.log(&#34;Produto escolhido:&#34;, id);
+  }
+
+  return (
+    &lt;main className=&#34;mx-auto max-w-7xl px-4 py-10&#34;&gt;
+      &lt;h1 className=&#34;text-3xl font-bold text-slate-900&#34;&gt;
+        Produtos
+      &lt;/h1&gt;
+
+      &lt;div className=&#34;mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3&#34;&gt;
+        {listaProdutos.map((produto) =&gt; (
+          &lt;CardProduto
+            key={produto.id}
+            produto={produto}
+            onEditar={testarEdicao}
+          /&gt;
+        ))}
+      &lt;/div&gt;
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+<h2 is-upgraded>O que o map entrega ao card?</h2>
+<p>Em cada repetição:</p>
+<pre><code language="language-tsx" class="language-tsx">produto={produto}
+</code></pre>
+<p>O primeiro <code>produto</code> é o nome da prop. O segundo é a variável da repetição.</p>
+<p>Podemos ler como:</p>
+<p>Entregue à prop chamada produto o objeto do produto atual.</p>
+<h2 is-upgraded>A função também é enviada</h2>
+<pre><code language="language-tsx" class="language-tsx">onEditar={testarEdicao}
+</code></pre>
+<p>Não há parênteses porque estamos passando a função para o componente filho. O card decidirá quando executá-la.</p>
+<h2 is-upgraded>Teste</h2>
+<ol type="1">
+<li>abra <code>/produtos</code>;</li>
+<li>confira os seis cards;</li>
+<li>abra o console;</li>
+<li>clique em diferentes botões;</li>
+<li>confirme que cada botão mostra um <code>id</code> diferente.</li>
+</ol>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="10. useState para busca e categoria" duration="65">
+        <p>Agora a tela terá informações que mudam durante a interação.</p>
+<p>No início de <code>routes/Produtos/index.tsx</code>, importe:</p>
+<pre><code language="language-tsx" class="language-tsx">import { useState } from &#34;react&#34;;
+import type { FiltroCategoria } from &#34;../../types/produto&#34;;
+</code></pre>
+<p>Dentro do componente:</p>
+<pre><code language="language-tsx" class="language-tsx">const [busca, setBusca] = useState(&#34;&#34;);
+
+const [categoria, setCategoria] =
+  useState&lt;FiltroCategoria&gt;(&#34;todos&#34;);
+</code></pre>
+<h2 is-upgraded>O que é estado?</h2>
+<p>Estado é uma informação que:</p>
+<ul>
+<li>pertence ao componente;</li>
+<li>pode mudar durante a interação;</li>
+<li>causa nova renderização quando é atualizada.</li>
+</ul>
+<h2 is-upgraded>Leia <code>useState</code></h2>
+<pre><code language="language-tsx" class="language-tsx">const [busca, setBusca] = useState(&#34;&#34;);
+</code></pre>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Parte</p>
+</td><td colspan="1" rowspan="1"><p>Significado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>busca</code></p>
+</td><td colspan="1" rowspan="1"><p>Valor atual.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>setBusca</code></p>
+</td><td colspan="1" rowspan="1"><p>Função usada para atualizar o valor.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>useState("")</code></p>
+</td><td colspan="1" rowspan="1"><p>Cria o estado com texto vazio.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>[ ]</code></p>
+</td><td colspan="1" rowspan="1"><p>Desestruturação do array devolvido pelo hook.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Estado tipado da categoria</h2>
+<pre><code language="language-tsx" class="language-tsx">useState&lt;FiltroCategoria&gt;(&#34;todos&#34;)
+</code></pre>
+<p>O trecho <code><FiltroCategoria></code> informa os valores aceitos pelo estado.</p>
+<h2 is-upgraded>Crie os controles</h2>
+<pre><code language="language-tsx" class="language-tsx">&lt;section
+  aria-label=&#34;Filtros dos produtos&#34;
+  className=&#34;mt-8 grid gap-4 rounded-2xl bg-slate-100 p-5 md:grid-cols-2&#34;
+&gt;
+  &lt;div&gt;
+    &lt;label
+      htmlFor=&#34;busca&#34;
+      className=&#34;mb-2 block font-medium text-slate-800&#34;
+    &gt;
+      Buscar por nome ou descrição
+    &lt;/label&gt;
+
+    &lt;input
+      id=&#34;busca&#34;
+      type=&#34;search&#34;
+      value={busca}
+      onChange={(event) =&gt; setBusca(event.target.value)}
+      className=&#34;w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900&#34;
+      placeholder=&#34;Exemplo: notebook&#34;
+    /&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;label
+      htmlFor=&#34;categoria&#34;
+      className=&#34;mb-2 block font-medium text-slate-800&#34;
+    &gt;
+      Categoria
+    &lt;/label&gt;
+
+    &lt;select
+      id=&#34;categoria&#34;
+      value={categoria}
+      onChange={(event) =&gt;
+        setCategoria(event.target.value as FiltroCategoria)
+      }
+      className=&#34;w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900&#34;
+    &gt;
+      &lt;option value=&#34;todos&#34;&gt;Todos&lt;/option&gt;
+      &lt;option value=&#34;notebook&#34;&gt;Notebooks&lt;/option&gt;
+      &lt;option value=&#34;smartphone&#34;&gt;Smartphones&lt;/option&gt;
+      &lt;option value=&#34;acessorio&#34;&gt;Acessórios&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+</code></pre>
+<h2 is-upgraded>Campo controlado</h2>
+<p>O input recebe o valor do estado:</p>
+<pre><code language="language-tsx" class="language-tsx">value={busca}
+</code></pre>
+<p>E atualiza o estado quando a pessoa digita:</p>
+<pre><code language="language-tsx" class="language-tsx">onChange={(event) =&gt; setBusca(event.target.value)}
+</code></pre>
+<p>Esse conjunto forma um <strong>campo controlado</strong>.</p>
+<h2 is-upgraded>Por que existe <code>as FiltroCategoria</code>?</h2>
+<p>Para o TypeScript, <code>event.target.value</code> é uma <code>string</code> genérica. Porém, sabemos que as opções do <code>select</code> pertencem a <code>FiltroCategoria</code>.</p>
+<pre><code language="language-tsx" class="language-tsx">event.target.value as FiltroCategoria
+</code></pre>
+<p>Essa afirmação só é segura porque controlamos as opções do <code>select</code>.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="11. filter, toLowerCase, includes e trim" duration="75">
+        <p>Agora criaremos uma lista derivada.</p>
+<p>Dentro de <code>Produtos</code>, depois dos estados:</p>
+<pre><code language="language-tsx" class="language-tsx">const termoNormalizado = busca.trim().toLowerCase();
+
+const produtosFiltrados = listaProdutos.filter((produto) =&gt; {
+  const nomeNormalizado = produto.nome.toLowerCase();
+  const descricaoNormalizada = produto.descricao.toLowerCase();
+
+  const correspondeAoTexto =
+    nomeNormalizado.includes(termoNormalizado) ||
+    descricaoNormalizada.includes(termoNormalizado);
+
+  const correspondeACategoria =
+    categoria === &#34;todos&#34; || produto.categoria === categoria;
+
+  return correspondeAoTexto &amp;&amp; correspondeACategoria;
+});
+</code></pre>
+<h2 is-upgraded>O que filter devolve?</h2>
+<p><code>filter</code> cria um novo array contendo apenas os itens aprovados pela condição.</p>
+<p>Para cada produto, a função precisa devolver:</p>
+<ul>
+<li><code>true</code>: o produto permanece;</li>
+<li><code>false</code>: o produto fica fora do novo array.</li>
+</ul>
+<h2 is-upgraded><code>trim</code></h2>
+<pre><code language="language-ts" class="language-ts">busca.trim()
+</code></pre>
+<p>Remove espaços no início e no final.</p>
+<pre><code language="language-text" class="language-text">&#34;  notebook  &#34; → &#34;notebook&#34;
+</code></pre>
+<h2 is-upgraded><code>toLowerCase</code></h2>
+<pre><code language="language-ts" class="language-ts">produto.nome.toLowerCase()
+</code></pre>
+<p>Cria uma versão em letras minúsculas.</p>
+<pre><code language="language-text" class="language-text">&#34;Notebook Pro 15&#34; → &#34;notebook pro 15&#34;
+</code></pre>
+<p>Isso permite comparar textos sem depender de maiúsculas e minúsculas.</p>
+<h2 is-upgraded><code>includes</code></h2>
+<pre><code language="language-ts" class="language-ts">nomeNormalizado.includes(termoNormalizado)
+</code></pre>
+<p>Pergunta se um texto contém outro texto.</p>
+<pre><code language="language-text" class="language-text">&#34;notebook pro 15&#34; contém &#34;pro&#34;? true
+&#34;mouse precision&#34; contém &#34;pro&#34;? false
+</code></pre>
+<h2 is-upgraded>Operador <code>||</code></h2>
+<pre><code language="language-ts" class="language-ts">nomeContem || descricaoContem
+</code></pre>
+<p>Significa <strong>ou</strong>. Basta uma das condições ser verdadeira.</p>
+<h2 is-upgraded>Operador <code>&&</code></h2>
+<pre><code language="language-ts" class="language-ts">correspondeAoTexto &amp;&amp; correspondeACategoria
+</code></pre>
+<p>Significa <strong>e</strong>. As duas condições precisam ser verdadeiras.</p>
+<h2 is-upgraded>Por que <code>produtosFiltrados</code> não é outro estado?</h2>
+<p>Ele pode ser calculado usando:</p>
+<ul>
+<li><code>listaProdutos</code>;</li>
+<li><code>busca</code>;</li>
+<li><code>categoria</code>.</li>
+</ul>
+<p>Como é um valor derivado, não precisamos duplicá-lo em outro <code>useState</code>.</p>
+<p>Duplicar dados aumentaria o risco de manter estados desencontrados.</p>
+<h2 is-upgraded>Renderize a lista filtrada</h2>
+<p>Troque:</p>
+<pre><code language="language-tsx" class="language-tsx">listaProdutos.map(...)
+</code></pre>
+<p>por:</p>
+<pre><code language="language-tsx" class="language-tsx">produtosFiltrados.map(...)
+</code></pre>
+<p>Adicione também:</p>
+<pre><code language="language-tsx" class="language-tsx">&lt;p className=&#34;mt-5 text-sm text-slate-600&#34; aria-live=&#34;polite&#34;&gt;
+  {produtosFiltrados.length} produto(s) encontrado(s).
+&lt;/p&gt;
+</code></pre>
+<h2 is-upgraded>Testes obrigatórios</h2>
+<ol type="1">
+<li>Digite <code>notebook</code>.</li>
+<li>Apague e digite <code>FOCUS</code>.</li>
+<li>Digite espaços antes e depois de <code>mouse</code>.</li>
+<li>Selecione apenas acessórios.</li>
+<li>Combine busca e categoria.</li>
+<li>Digite algo inexistente.</li>
+</ol>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="12. map, filter e find: escolha pelo resultado" duration="45">
+        <table>
+<tr><td colspan="1" rowspan="1"><p>Método</p>
+</td><td colspan="1" rowspan="1"><p>Pergunta principal</p>
+</td><td colspan="1" rowspan="1"><p>Resultado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>map</code></p>
+</td><td colspan="1" rowspan="1"><p>O que cada item deve virar?</p>
+</td><td colspan="1" rowspan="1"><p>Outro array com a mesma quantidade.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>filter</code></p>
+</td><td colspan="1" rowspan="1"><p>Quais itens devem permanecer?</p>
+</td><td colspan="1" rowspan="1"><p>Outro array com zero, um ou vários itens.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>find</code></p>
+</td><td colspan="1" rowspan="1"><p>Qual é o primeiro item que atende à condição?</p>
+</td><td colspan="1" rowspan="1"><p>Um item ou <code>undefined</code>.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Exemplos com o mesmo array</h2>
+<pre><code language="language-ts" class="language-ts">const nomes = listaProdutos.map((produto) =&gt; produto.nome);
+</code></pre>
+<p>Resultado: array de nomes.</p>
+<pre><code language="language-ts" class="language-ts">const acessorios = listaProdutos.filter(
+  (produto) =&gt; produto.categoria === &#34;acessorio&#34;,
+);
+</code></pre>
+<p>Resultado: array de acessórios.</p>
+<pre><code language="language-ts" class="language-ts">const produtoTres = listaProdutos.find(
+  (produto) =&gt; produto.id === 3,
+);
+</code></pre>
+<p>Resultado: o objeto de <code>id</code> 3 ou <code>undefined</code>.</p>
+<h2 is-upgraded>Por que find será usado na edição?</h2>
+<p>A página de edição precisa de <strong>um produto específico</strong>, não de uma lista.</p>
+<p>Por isso, <code>find</code> combina melhor com o problema.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="13. useNavigate e o envio do id pelo segmento da URL" duration="55">
+        <p>Na página <code>Produtos</code>, importe:</p>
+<pre><code language="language-tsx" class="language-tsx">import { useNavigate } from &#34;react-router&#34;;
+</code></pre>
+<p>Dentro do componente:</p>
+<pre><code language="language-tsx" class="language-tsx">const navigate = useNavigate();
+</code></pre>
+<p>Crie a função:</p>
+<pre><code language="language-tsx" class="language-tsx">function abrirEdicao(id: number) {
+  navigate(`/editar-produtos/${id}`);
+}
+</code></pre>
+<p>Entregue essa função ao card:</p>
+<pre><code language="language-tsx" class="language-tsx">&lt;CardProduto
+  key={produto.id}
+  produto={produto}
+  onEditar={abrirEdicao}
+/&gt;
+</code></pre>
+<h2 is-upgraded>O que o hook devolve?</h2>
+<p><code>useNavigate</code> devolve uma função de navegação programática.</p>
+<pre><code language="language-tsx" class="language-tsx">const navigate = useNavigate();
+</code></pre>
+<p>Não é uma página, um endereço ou um componente. É uma função que pode mudar a localização atual da aplicação.</p>
+<h2 is-upgraded>Interpolação de texto</h2>
+<pre><code language="language-tsx" class="language-tsx">`/editar-produtos/${id}`
+</code></pre>
+<p>As crases criam uma <em>template string</em>. O trecho <code>${id}</code> insere o valor do identificador.</p>
+<p>Se <code>id</code> for <code>4</code>, o endereço será:</p>
+<pre><code language="language-text" class="language-text">/editar-produtos/4
+</code></pre>
+<h2 is-upgraded>O que é o segmento <code>/4</code>?</h2>
+<p>É o valor que ocupa o parâmetro dinâmico <code>:id</code> definido na rota.</p>
+<pre><code language="language-text" class="language-text">/editar-produtos/:id  → definição da rota
+/editar-produtos/4    → endereço acessado
+                  └─ valor de id
+</code></pre>
+<p>Na configuração, <code>:id</code> funciona como um espaço reservado. Na navegação, esse espaço recebe o identificador do produto.</p>
+<h2 is-upgraded>Por que usar o id e não o objeto inteiro?</h2>
+<ul>
+<li>o endereço fica simples;</li>
+<li>o <code>id</code> representa identidade;</li>
+<li>a página de destino pratica <code>find</code>;</li>
+<li>atualizar a página mantém o parâmetro;</li>
+<li>o link pode ser copiado para este exercício.</li>
+</ul>
+<h2 is-upgraded>Teste antes de criar a página final</h2>
+<ol type="1">
+<li>clique no botão do produto 1;</li>
+<li>observe <code>/editar-produtos/1</code>;</li>
+<li>volte;</li>
+<li>clique no produto 5;</li>
+<li>observe <code>/editar-produtos/5</code>.</li>
+</ol>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="14. useParams e conversão do id" duration="60">
+        <p>Abra:</p>
+<pre><code language="language-text" class="language-text">src/routes/EditarProdutos/index.tsx
+</code></pre>
+<p>Comece com:</p>
+<pre><code language="language-tsx" class="language-tsx">import { Link, useParams } from &#34;react-router&#34;;
+import { listaProdutos } from &#34;../../data/produtos&#34;;
+
+export default function EditarProdutos() {
+  const { id } = useParams();
+  const produtoId = Number(id);
+
+  const produtoEncontrado = listaProdutos.find(
+    (produto) =&gt; produto.id === produtoId,
+  );
+
+  if (!produtoEncontrado) {
+    return (
+      &lt;main className=&#34;mx-auto max-w-4xl px-4 py-10&#34;&gt;
+        &lt;h1 className=&#34;text-3xl font-bold text-slate-900&#34;&gt;
+          Produto não encontrado
+        &lt;/h1&gt;
+        &lt;p className=&#34;mt-3 text-slate-600&#34;&gt;
+          Não existe um produto com o identificador informado.
+        &lt;/p&gt;
+        &lt;Link
+          to=&#34;/produtos&#34;
+          className=&#34;mt-6 inline-block font-semibold text-blue-700 underline&#34;
+        &gt;
+          Voltar para produtos
+        &lt;/Link&gt;
+      &lt;/main&gt;
+    );
+  }
+
+  return (
+    &lt;main className=&#34;mx-auto max-w-4xl px-4 py-10&#34;&gt;
+      &lt;h1 className=&#34;text-3xl font-bold text-slate-900&#34;&gt;
+        Editar produto
+      &lt;/h1&gt;
+
+      &lt;p className=&#34;mt-3 text-slate-600&#34;&gt;
+        Produto encontrado: {produtoEncontrado.nome}
+      &lt;/p&gt;
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+<h2 is-upgraded>Leia o hook</h2>
+<pre><code language="language-tsx" class="language-tsx">const { id } = useParams();
+</code></pre>
+<p>O hook devolve um objeto com os parâmetros dinâmicos da rota atual. Como a rota possui <code>:id</code>, desestruturamos a propriedade <code>id</code>.</p>
+<h2 is-upgraded>Lendo <code>id</code></h2>
+<pre><code language="language-tsx" class="language-tsx">const { id } = useParams();
+</code></pre>
+<p>Se a URL for:</p>
+<pre><code language="language-text" class="language-text">/editar-produtos/4
+</code></pre>
+<p><code>id</code> será o texto <code>"4"</code>. Seu tipo também admite <code>undefined</code>, pois o TypeScript não pressupõe que todo endereço possua esse parâmetro.</p>
+<h2 is-upgraded>A URL fornece texto</h2>
+<p>O <code>id</code> do nosso produto é <code>number</code>, mas o valor da URL chega como texto.</p>
+<p>Por isso fazemos:</p>
+<pre><code language="language-tsx" class="language-tsx">const produtoId = Number(id);
+</code></pre>
+<p>Exemplo:</p>
+<pre><code language="language-text" class="language-text">&#34;4&#34; → 4
+string → number
+</code></pre>
+<h2 is-upgraded>Localização com find</h2>
+<pre><code language="language-tsx" class="language-tsx">const produtoEncontrado = listaProdutos.find(
+  (produto) =&gt; produto.id === produtoId,
+);
+</code></pre>
+<p>O método percorre os produtos e para quando encontra o primeiro <code>id</code> igual.</p>
+<p>O tipo inferido será:</p>
+<pre><code language="language-text" class="language-text">Produto | undefined
+</code></pre>
+<p>Ou existe um produto, ou nada foi encontrado.</p>
+<h2 is-upgraded>Proteção antes de usar o objeto</h2>
+<pre><code language="language-tsx" class="language-tsx">if (!produtoEncontrado) {
+  return &lt;main&gt;Produto não encontrado.&lt;/main&gt;;
+}
+</code></pre>
+<p>Depois desse <code>if</code>, o TypeScript entende que <code>produtoEncontrado</code> existe. Neste caso, mostramos uma mensagem dentro da própria página. O componente <code>Error</code> configurado como <code>errorElement</code> continua responsável por URLs que não correspondem às rotas.</p>
+<h2 is-upgraded>Testes de erro</h2>
+<p>Digite manualmente:</p>
+<pre><code language="language-text" class="language-text">/editar-produtos/1
+/editar-produtos/abc
+/editar-produtos/999
+/editar-produtos
+</code></pre>
+<p>O primeiro endereço deve localizar o produto 1. Os dois seguintes entram na página de edição e mostram &#34;Produto não encontrado&#34;. O último não corresponde à rota <code>/editar-produtos/:id</code>; por isso, o roteador apresenta o componente definido em <code>errorElement</code>.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="15. Separando a busca do formulário" duration="45">
+        <p>Não criaremos o estado do formulário antes de saber se o produto existe.</p>
+<p>Uma solução clara é separar responsabilidades:</p>
+<pre><code language="language-tsx" class="language-tsx">export default function EditarProdutos() {
+  // Lê a URL e encontra o produto.
+
+  if (!produtoEncontrado) {
+    return &lt;main&gt;Produto não encontrado.&lt;/main&gt;;
+  }
+
+  return &lt;FormularioEdicao produto={produtoEncontrado} /&gt;;
+}
+</code></pre>
+<p>O componente <code>FormularioEdicao</code> será responsável pelos hooks do formulário.</p>
+<h2 is-upgraded>Por que não chamar useState depois de um retorno condicional?</h2>
+<p>Hooks precisam ser chamados sempre na mesma ordem em cada renderização do componente.</p>
+<p>Evite:</p>
+<pre><code language="language-tsx" class="language-tsx">if (!produtoEncontrado) {
+  return &lt;main&gt;Produto não encontrado.&lt;/main&gt;;
+}
+
+// Evite colocar o hook aqui no mesmo componente.
+const [formulario, setFormulario] = useState(...);
+</code></pre>
+<p>Ao mover o formulário para outro componente:</p>
+<ul>
+<li><code>EditarProdutos</code> localiza o produto;</li>
+<li><code>FormularioEdicao</code> gerencia os campos;</li>
+<li>cada componente possui responsabilidade clara;</li>
+<li>os hooks permanecem em ordem previsível.</li>
+</ul>
+<h2 is-upgraded>Props do formulário</h2>
+<pre><code language="language-tsx" class="language-tsx">interface FormularioEdicaoProps {
+  produto: Produto;
+}
+</code></pre>
+<p>O formulário só será renderizado quando receber um produto válido.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="16. useState com um objeto de formulário" duration="85">
+        <p>No mesmo arquivo <code>routes/EditarProdutos/index.tsx</code>, adicione os imports:</p>
+<pre><code language="language-tsx" class="language-tsx">import { useState, type FormEvent } from &#34;react&#34;;
+import type {
+  FormularioProduto,
+  Produto,
+} from &#34;../../types/produto&#34;;
+</code></pre>
+<p>Depois do componente principal, crie:</p>
+<pre><code language="language-tsx" class="language-tsx">interface FormularioEdicaoProps {
+  produto: Produto;
+}
+
+function FormularioEdicao({ produto }: FormularioEdicaoProps) {
+  const [formulario, setFormulario] = useState&lt;FormularioProduto&gt;(() =&gt; ({
+    nome: produto.nome,
+    preco: produto.preco,
+    categoria: produto.categoria,
+    status: produto.status,
+    estoque: produto.estoque,
+    imagem: produto.imagem,
+    descricao: produto.descricao,
+  }));
+
+  const [mensagem, setMensagem] = useState(&#34;&#34;);
+
+  function salvarEdicao(event: FormEvent&lt;HTMLFormElement&gt;) {
+    event.preventDefault();
+
+    const produtoAtualizado: Produto = {
+      id: produto.id,
+      ...formulario,
+    };
+
+    console.table(produtoAtualizado);
+    setMensagem(&#34;Alterações preparadas apenas na memória do navegador.&#34;);
+  }
+
+  return (
+    &lt;form
+      onSubmit={salvarEdicao}
+      className=&#34;mt-8 space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm&#34;
+    &gt;
+      {/* Os campos serão adicionados na próxima etapa. */}
+
+      &lt;button
+        type=&#34;submit&#34;
+        className=&#34;rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-700&#34;
+      &gt;
+        Preparar alteração
+      &lt;/button&gt;
+
+      &lt;p aria-live=&#34;polite&#34; className=&#34;text-sm font-medium text-emerald-700&#34;&gt;
+        {mensagem}
+      &lt;/p&gt;
+    &lt;/form&gt;
+  );
+}
+</code></pre>
+<h2 is-upgraded>Inicialização preguiçosa</h2>
+<pre><code language="language-tsx" class="language-tsx">useState&lt;FormularioProduto&gt;(() =&gt; ({ ... }))
+</code></pre>
+<p>O <code>useState</code> recebe uma função que cria o valor inicial. Essa função é usada na inicialização do estado.</p>
+<h2 is-upgraded>Por que copiar os campos?</h2>
+<p>Não devemos alterar diretamente o objeto importado.</p>
+<p>O formulário recebe sua própria cópia dos valores editáveis:</p>
+<pre><code language="language-tsx" class="language-tsx">nome: produto.nome,
+preco: produto.preco,
+</code></pre>
+<h2 is-upgraded>O operador de espalhamento</h2>
+<pre><code language="language-tsx" class="language-tsx">const produtoAtualizado = {
+  id: produto.id,
+  ...formulario,
+};
+</code></pre>
+<p><code>...formulario</code> espalha as propriedades do formulário dentro do novo objeto.</p>
+<p>O resultado volta a possuir todas as propriedades de <code>Produto</code>, incluindo <code>id</code>.</p>
+<h2 is-upgraded>Evento do formulário</h2>
+<pre><code language="language-tsx" class="language-tsx">event.preventDefault();
+</code></pre>
+<p>Impede o comportamento HTML padrão de recarregar ou navegar ao enviar o formulário.</p>
+<h2 is-upgraded>Mensagem acessível</h2>
+<pre><code language="language-tsx" class="language-tsx">&lt;p aria-live=&#34;polite&#34;&gt;{mensagem}&lt;/p&gt;
+</code></pre>
+<p><code>aria-live="polite"</code> permite que tecnologias assistivas anunciem a mensagem quando ela mudar.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="17. Formulário completo de EditarProdutos" duration="90">
+        <p>Substitua o retorno temporário de <code>FormularioEdicao</code> pelo formulário completo:</p>
+<pre><code language="language-tsx" class="language-tsx">return (
+  &lt;form
+    onSubmit={salvarEdicao}
+    className=&#34;mt-8 space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm&#34;
+  &gt;
+    &lt;div&gt;
+      &lt;label htmlFor=&#34;nome&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+        Nome
+      &lt;/label&gt;
+      &lt;input
+        id=&#34;nome&#34;
+        type=&#34;text&#34;
+        value={formulario.nome}
+        onChange={(event) =&gt;
+          setFormulario((estadoAtual) =&gt; ({
+            ...estadoAtual,
+            nome: event.target.value,
+          }))
+        }
+        className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+        required
+      /&gt;
+    &lt;/div&gt;
+
+    &lt;div className=&#34;grid gap-6 md:grid-cols-2&#34;&gt;
+      &lt;div&gt;
+        &lt;label htmlFor=&#34;preco&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+          Preço
+        &lt;/label&gt;
+        &lt;input
+          id=&#34;preco&#34;
+          type=&#34;number&#34;
+          min=&#34;0&#34;
+          step=&#34;0.01&#34;
+          value={formulario.preco}
+          onChange={(event) =&gt;
+            setFormulario((estadoAtual) =&gt; ({
+              ...estadoAtual,
+              preco: Number(event.target.value),
+            }))
+          }
+          className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+          required
+        /&gt;
+      &lt;/div&gt;
+
+      &lt;div&gt;
+        &lt;label htmlFor=&#34;estoque&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+          Estoque
+        &lt;/label&gt;
+        &lt;input
+          id=&#34;estoque&#34;
+          type=&#34;number&#34;
+          min=&#34;0&#34;
+          step=&#34;1&#34;
+          value={formulario.estoque}
+          onChange={(event) =&gt;
+            setFormulario((estadoAtual) =&gt; ({
+              ...estadoAtual,
+              estoque: Number(event.target.value),
+            }))
+          }
+          className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+          required
+        /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div className=&#34;grid gap-6 md:grid-cols-2&#34;&gt;
+      &lt;div&gt;
+        &lt;label htmlFor=&#34;categoria&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+          Categoria
+        &lt;/label&gt;
+        &lt;select
+          id=&#34;categoria&#34;
+          value={formulario.categoria}
+          onChange={(event) =&gt;
+            setFormulario((estadoAtual) =&gt; ({
+              ...estadoAtual,
+              categoria: event.target.value as Produto[&#34;categoria&#34;],
+            }))
+          }
+          className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+        &gt;
+          &lt;option value=&#34;notebook&#34;&gt;Notebook&lt;/option&gt;
+          &lt;option value=&#34;smartphone&#34;&gt;Smartphone&lt;/option&gt;
+          &lt;option value=&#34;acessorio&#34;&gt;Acessório&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+
+      &lt;div&gt;
+        &lt;label htmlFor=&#34;status&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+          Status
+        &lt;/label&gt;
+        &lt;select
+          id=&#34;status&#34;
+          value={formulario.status}
+          onChange={(event) =&gt;
+            setFormulario((estadoAtual) =&gt; ({
+              ...estadoAtual,
+              status: event.target.value as Produto[&#34;status&#34;],
+            }))
+          }
+          className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+        &gt;
+          &lt;option value=&#34;disponivel&#34;&gt;Disponível&lt;/option&gt;
+          &lt;option value=&#34;baixo-estoque&#34;&gt;Baixo estoque&lt;/option&gt;
+          &lt;option value=&#34;indisponivel&#34;&gt;Indisponível&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div&gt;
+      &lt;label htmlFor=&#34;imagem&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+        Endereço da imagem
+      &lt;/label&gt;
+      &lt;input
+        id=&#34;imagem&#34;
+        type=&#34;url&#34;
+        value={formulario.imagem}
+        onChange={(event) =&gt;
+          setFormulario((estadoAtual) =&gt; ({
+            ...estadoAtual,
+            imagem: event.target.value,
+          }))
+        }
+        className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+        required
+      /&gt;
+    &lt;/div&gt;
+
+    &lt;div&gt;
+      &lt;label htmlFor=&#34;descricao&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+        Descrição
+      &lt;/label&gt;
+      &lt;textarea
+        id=&#34;descricao&#34;
+        rows={5}
+        value={formulario.descricao}
+        onChange={(event) =&gt;
+          setFormulario((estadoAtual) =&gt; ({
+            ...estadoAtual,
+            descricao: event.target.value,
+          }))
+        }
+        className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+        required
+      /&gt;
+    &lt;/div&gt;
+
+    &lt;figure className=&#34;overflow-hidden rounded-2xl bg-slate-100 p-4&#34;&gt;
+      &lt;img
+        src={formulario.imagem}
+        alt={`Prévia de ${formulario.nome}`}
+        className=&#34;mx-auto max-h-72 rounded-xl object-contain&#34;
+      /&gt;
+      &lt;figcaption className=&#34;mt-2 text-center text-sm text-slate-600&#34;&gt;
+        Prévia da imagem informada
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+
+    &lt;button
+      type=&#34;submit&#34;
+      className=&#34;rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2&#34;
+    &gt;
+      Preparar alteração
+    &lt;/button&gt;
+
+    &lt;p aria-live=&#34;polite&#34; className=&#34;text-sm font-medium text-emerald-700&#34;&gt;
+      {mensagem}
+    &lt;/p&gt;
+  &lt;/form&gt;
+);
+</code></pre>
+<h2 is-upgraded>Atualização imutável do estado</h2>
+<p>Observe:</p>
+<pre><code language="language-tsx" class="language-tsx">setFormulario((estadoAtual) =&gt; ({
+  ...estadoAtual,
+  nome: event.target.value,
+}));
+</code></pre>
+<p>O processo é:</p>
+<ol type="1">
+<li>receber o estado atual;</li>
+<li>criar um novo objeto;</li>
+<li>copiar todas as propriedades;</li>
+<li>substituir apenas <code>nome</code>;</li>
+<li>entregar o novo objeto ao React.</li>
+</ol>
+<p>Não faça:</p>
+<pre><code language="language-tsx" class="language-tsx">formulario.nome = event.target.value;
+</code></pre>
+<p>Isso altera o objeto diretamente e não segue o padrão imutável esperado para o estado.</p>
+<h2 is-upgraded>Conversão dos campos numéricos</h2>
+<p>O valor de um <code>input</code>, mesmo com <code>type="number"</code>, chega como texto.</p>
+<pre><code language="language-tsx" class="language-tsx">Number(event.target.value)
+</code></pre>
+<p>Converte o texto antes de armazená-lo em <code>preco</code> ou <code>estoque</code>.</p>
+<h2 is-upgraded>Tipo obtido pela propriedade</h2>
+<pre><code language="language-tsx" class="language-tsx">Produto[&#34;categoria&#34;]
+</code></pre>
+<p>Significa:</p>
+<p>use exatamente o tipo da propriedade <code>categoria</code> da interface <code>Produto</code>.</p>
+<p>Assim, não precisamos repetir manualmente a união.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="18. Código final dos componentes principais" duration="75">
+        <h2 is-upgraded><code>src/routes/Produtos/index.tsx</code></h2>
+<pre><code language="language-tsx" class="language-tsx">import { useState } from &#34;react&#34;;
+import { useNavigate } from &#34;react-router&#34;;
+
+import CardProduto from &#34;../../components/CardProduto&#34;;
+import { listaProdutos } from &#34;../../data/produtos&#34;;
+import type { FiltroCategoria } from &#34;../../types/produto&#34;;
+
+export default function Produtos() {
+  const navigate = useNavigate();
+
+  const [busca, setBusca] = useState(&#34;&#34;);
+  const [categoria, setCategoria] =
+    useState&lt;FiltroCategoria&gt;(&#34;todos&#34;);
+
+  const termoNormalizado = busca.trim().toLowerCase();
+
+  const produtosFiltrados = listaProdutos.filter((produto) =&gt; {
+    const nomeNormalizado = produto.nome.toLowerCase();
+    const descricaoNormalizada = produto.descricao.toLowerCase();
+
+    const correspondeAoTexto =
+      nomeNormalizado.includes(termoNormalizado) ||
+      descricaoNormalizada.includes(termoNormalizado);
+
+    const correspondeACategoria =
+      categoria === &#34;todos&#34; || produto.categoria === categoria;
+
+    return correspondeAoTexto &amp;&amp; correspondeACategoria;
+  });
+
+  function abrirEdicao(id: number) {
+    navigate(`/editar-produtos/${id}`);
+  }
+
+  return (
+    &lt;main className=&#34;mx-auto max-w-7xl px-4 py-10&#34;&gt;
+      &lt;header&gt;
+        &lt;h1 className=&#34;text-3xl font-bold text-slate-900&#34;&gt;
+          Produtos
+        &lt;/h1&gt;
+        &lt;p className=&#34;mt-2 text-slate-600&#34;&gt;
+          Consulte e selecione um produto para editar.
+        &lt;/p&gt;
+      &lt;/header&gt;
+
+      &lt;section
+        aria-label=&#34;Filtros dos produtos&#34;
+        className=&#34;mt-8 grid gap-4 rounded-2xl bg-slate-100 p-5 md:grid-cols-2&#34;
+      &gt;
+        &lt;div&gt;
+          &lt;label htmlFor=&#34;busca&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+            Buscar por nome ou descrição
+          &lt;/label&gt;
+          &lt;input
+            id=&#34;busca&#34;
+            type=&#34;search&#34;
+            value={busca}
+            onChange={(event) =&gt; setBusca(event.target.value)}
+            className=&#34;w-full rounded-xl border border-slate-300 bg-white px-4 py-3&#34;
+            placeholder=&#34;Exemplo: notebook&#34;
+          /&gt;
+        &lt;/div&gt;
+
+        &lt;div&gt;
+          &lt;label htmlFor=&#34;categoria&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+            Categoria
+          &lt;/label&gt;
+          &lt;select
+            id=&#34;categoria&#34;
+            value={categoria}
+            onChange={(event) =&gt;
+              setCategoria(event.target.value as FiltroCategoria)
+            }
+            className=&#34;w-full rounded-xl border border-slate-300 bg-white px-4 py-3&#34;
+          &gt;
+            &lt;option value=&#34;todos&#34;&gt;Todos&lt;/option&gt;
+            &lt;option value=&#34;notebook&#34;&gt;Notebooks&lt;/option&gt;
+            &lt;option value=&#34;smartphone&#34;&gt;Smartphones&lt;/option&gt;
+            &lt;option value=&#34;acessorio&#34;&gt;Acessórios&lt;/option&gt;
+          &lt;/select&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;p className=&#34;mt-5 text-sm text-slate-600&#34; aria-live=&#34;polite&#34;&gt;
+        {produtosFiltrados.length} produto(s) encontrado(s).
+      &lt;/p&gt;
+
+      {produtosFiltrados.length &gt; 0 ? (
+        &lt;div className=&#34;mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3&#34;&gt;
+          {produtosFiltrados.map((produto) =&gt; (
+            &lt;CardProduto
+              key={produto.id}
+              produto={produto}
+              onEditar={abrirEdicao}
+            /&gt;
+          ))}
+        &lt;/div&gt;
+      ) : (
+        &lt;p className=&#34;mt-8 rounded-2xl bg-amber-50 p-5 text-amber-900&#34;&gt;
+          Nenhum produto corresponde aos filtros escolhidos.
+        &lt;/p&gt;
+      )}
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+<h2 is-upgraded><code>src/routes/EditarProdutos/index.tsx</code></h2>
+<pre><code language="language-tsx" class="language-tsx">import { useState, type FormEvent } from &#34;react&#34;;
+import { Link, useParams } from &#34;react-router&#34;;
+
+import { listaProdutos } from &#34;../../data/produtos&#34;;
+import type {
+  FormularioProduto,
+  Produto,
+} from &#34;../../types/produto&#34;;
+
+export default function EditarProdutos() {
+  const { id } = useParams();
+  const produtoId = Number(id);
+
+  const produtoEncontrado = listaProdutos.find(
+    (produto) =&gt; produto.id === produtoId,
+  );
+
+  if (!produtoEncontrado) {
+    return (
+      &lt;main className=&#34;mx-auto max-w-4xl px-4 py-10&#34;&gt;
+        &lt;h1 className=&#34;text-3xl font-bold text-slate-900&#34;&gt;
+          Produto não encontrado
+        &lt;/h1&gt;
+        &lt;p className=&#34;mt-3 text-slate-600&#34;&gt;
+          Não existe um produto com o identificador informado.
+        &lt;/p&gt;
+        &lt;Link
+          to=&#34;/produtos&#34;
+          className=&#34;mt-6 inline-block font-semibold text-blue-700 underline&#34;
+        &gt;
+          Voltar para produtos
+        &lt;/Link&gt;
+      &lt;/main&gt;
+    );
+  }
+
+  return (
+    &lt;main className=&#34;mx-auto max-w-4xl px-4 py-10&#34;&gt;
+      &lt;header&gt;
+        &lt;h1 className=&#34;text-3xl font-bold text-slate-900&#34;&gt;
+          Editar produto
+        &lt;/h1&gt;
+        &lt;p className=&#34;mt-2 text-slate-600&#34;&gt;
+          Produto selecionado: {produtoEncontrado.nome}
+        &lt;/p&gt;
+      &lt;/header&gt;
+
+      &lt;FormularioEdicao produto={produtoEncontrado} /&gt;
+    &lt;/main&gt;
+  );
+}
+
+interface FormularioEdicaoProps {
+  produto: Produto;
+}
+
+function FormularioEdicao({ produto }: FormularioEdicaoProps) {
+  const [formulario, setFormulario] = useState&lt;FormularioProduto&gt;(() =&gt; ({
+    nome: produto.nome,
+    preco: produto.preco,
+    categoria: produto.categoria,
+    status: produto.status,
+    estoque: produto.estoque,
+    imagem: produto.imagem,
+    descricao: produto.descricao,
+  }));
+
+  const [mensagem, setMensagem] = useState(&#34;&#34;);
+
+  function salvarEdicao(event: FormEvent&lt;HTMLFormElement&gt;) {
+    event.preventDefault();
+
+    const produtoAtualizado: Produto = {
+      id: produto.id,
+      ...formulario,
+    };
+
+    console.table(produtoAtualizado);
+    setMensagem(&#34;Alterações preparadas apenas na memória do navegador.&#34;);
+  }
+
+  return (
+    &lt;form
+      onSubmit={salvarEdicao}
+      className=&#34;mt-8 space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm&#34;
+    &gt;
+      &lt;div&gt;
+        &lt;label htmlFor=&#34;nome&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+          Nome
+        &lt;/label&gt;
+        &lt;input
+          id=&#34;nome&#34;
+          type=&#34;text&#34;
+          value={formulario.nome}
+          onChange={(event) =&gt;
+            setFormulario((atual) =&gt; ({
+              ...atual,
+              nome: event.target.value,
+            }))
+          }
+          className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+          required
+        /&gt;
+      &lt;/div&gt;
+
+      &lt;div className=&#34;grid gap-6 md:grid-cols-2&#34;&gt;
+        &lt;div&gt;
+          &lt;label htmlFor=&#34;preco&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+            Preço
+          &lt;/label&gt;
+          &lt;input
+            id=&#34;preco&#34;
+            type=&#34;number&#34;
+            min=&#34;0&#34;
+            step=&#34;0.01&#34;
+            value={formulario.preco}
+            onChange={(event) =&gt;
+              setFormulario((atual) =&gt; ({
+                ...atual,
+                preco: Number(event.target.value),
+              }))
+            }
+            className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+            required
+          /&gt;
+        &lt;/div&gt;
+
+        &lt;div&gt;
+          &lt;label htmlFor=&#34;estoque&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+            Estoque
+          &lt;/label&gt;
+          &lt;input
+            id=&#34;estoque&#34;
+            type=&#34;number&#34;
+            min=&#34;0&#34;
+            step=&#34;1&#34;
+            value={formulario.estoque}
+            onChange={(event) =&gt;
+              setFormulario((atual) =&gt; ({
+                ...atual,
+                estoque: Number(event.target.value),
+              }))
+            }
+            className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+            required
+          /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className=&#34;grid gap-6 md:grid-cols-2&#34;&gt;
+        &lt;div&gt;
+          &lt;label htmlFor=&#34;categoria-edicao&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+            Categoria
+          &lt;/label&gt;
+          &lt;select
+            id=&#34;categoria-edicao&#34;
+            value={formulario.categoria}
+            onChange={(event) =&gt;
+              setFormulario((atual) =&gt; ({
+                ...atual,
+                categoria: event.target.value as Produto[&#34;categoria&#34;],
+              }))
+            }
+            className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+          &gt;
+            &lt;option value=&#34;notebook&#34;&gt;Notebook&lt;/option&gt;
+            &lt;option value=&#34;smartphone&#34;&gt;Smartphone&lt;/option&gt;
+            &lt;option value=&#34;acessorio&#34;&gt;Acessório&lt;/option&gt;
+          &lt;/select&gt;
+        &lt;/div&gt;
+
+        &lt;div&gt;
+          &lt;label htmlFor=&#34;status&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+            Status
+          &lt;/label&gt;
+          &lt;select
+            id=&#34;status&#34;
+            value={formulario.status}
+            onChange={(event) =&gt;
+              setFormulario((atual) =&gt; ({
+                ...atual,
+                status: event.target.value as Produto[&#34;status&#34;],
+              }))
+            }
+            className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+          &gt;
+            &lt;option value=&#34;disponivel&#34;&gt;Disponível&lt;/option&gt;
+            &lt;option value=&#34;baixo-estoque&#34;&gt;Baixo estoque&lt;/option&gt;
+            &lt;option value=&#34;indisponivel&#34;&gt;Indisponível&lt;/option&gt;
+          &lt;/select&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div&gt;
+        &lt;label htmlFor=&#34;imagem&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+          Endereço da imagem
+        &lt;/label&gt;
+        &lt;input
+          id=&#34;imagem&#34;
+          type=&#34;url&#34;
+          value={formulario.imagem}
+          onChange={(event) =&gt;
+            setFormulario((atual) =&gt; ({
+              ...atual,
+              imagem: event.target.value,
+            }))
+          }
+          className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+          required
+        /&gt;
+      &lt;/div&gt;
+
+      &lt;div&gt;
+        &lt;label htmlFor=&#34;descricao&#34; className=&#34;mb-2 block font-medium text-slate-800&#34;&gt;
+          Descrição
+        &lt;/label&gt;
+        &lt;textarea
+          id=&#34;descricao&#34;
+          rows={5}
+          value={formulario.descricao}
+          onChange={(event) =&gt;
+            setFormulario((atual) =&gt; ({
+              ...atual,
+              descricao: event.target.value,
+            }))
+          }
+          className=&#34;w-full rounded-xl border border-slate-300 px-4 py-3&#34;
+          required
+        /&gt;
+      &lt;/div&gt;
+
+      &lt;figure className=&#34;overflow-hidden rounded-2xl bg-slate-100 p-4&#34;&gt;
+        &lt;img
+          src={formulario.imagem}
+          alt={`Prévia de ${formulario.nome}`}
+          className=&#34;mx-auto max-h-72 rounded-xl object-contain&#34;
+        /&gt;
+        &lt;figcaption className=&#34;mt-2 text-center text-sm text-slate-600&#34;&gt;
+          Prévia da imagem informada
+        &lt;/figcaption&gt;
+      &lt;/figure&gt;
+
+      &lt;button
+        type=&#34;submit&#34;
+        className=&#34;rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-700&#34;
+      &gt;
+        Preparar alteração
+      &lt;/button&gt;
+
+      &lt;p aria-live=&#34;polite&#34; className=&#34;text-sm font-medium text-emerald-700&#34;&gt;
+        {mensagem}
+      &lt;/p&gt;
+    &lt;/form&gt;
+  );
+}
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="19. Por que useEffect não participa deste fluxo" duration="35">
+        <p><code>useEffect</code> é útil para sincronizar o componente com algo externo ao processo normal de renderização.</p>
+<p>Neste codelab:</p>
+<ul>
+<li>o array já foi importado;</li>
+<li>não existe resposta de rede;</li>
+<li>não existe assinatura externa;</li>
+<li>não existe temporizador;</li>
+<li>não precisamos copiar o array para outro estado.</li>
+</ul>
+<p>Portanto, isto é suficiente:</p>
+<pre><code language="language-tsx" class="language-tsx">import { listaProdutos } from &#34;../../data/produtos&#34;;
+</code></pre>
+<p>E isto seria trabalho desnecessário:</p>
+<pre><code language="language-tsx" class="language-tsx">const [produtos, setProdutos] = useState&lt;Produto[]&gt;([]);
+
+useEffect(() =&gt; {
+  setProdutos(listaProdutos);
+}, []);
+</code></pre>
+<p>O segundo exemplo cria:</p>
+<ol type="1">
+<li>um estado inicialmente vazio;</li>
+<li>uma primeira renderização sem dados;</li>
+<li>um efeito apenas para copiar uma constante;</li>
+<li>uma segunda renderização;</li>
+<li>duas fontes representando a mesma informação.</li>
+</ol>
+<h2 is-upgraded>Regra prática</h2>
+<p>Se o valor já pode ser importado ou calculado durante a renderização, não crie um efeito apenas para copiá-lo.</p>
+<h2 is-upgraded>Hooks realmente usados</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Hook</p>
+</td><td colspan="1" rowspan="1"><p>Página</p>
+</td><td colspan="1" rowspan="1"><p>Responsabilidade</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>useState</code></p>
+</td><td colspan="1" rowspan="1"><p><code>Produtos</code></p>
+</td><td colspan="1" rowspan="1"><p>Guardar busca e categoria escolhida.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>useNavigate</code></p>
+</td><td colspan="1" rowspan="1"><p><code>Produtos</code></p>
+</td><td colspan="1" rowspan="1"><p>Abrir a página de edição com o <code>id</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>useParams</code></p>
+</td><td colspan="1" rowspan="1"><p><code>EditarProdutos</code></p>
+</td><td colspan="1" rowspan="1"><p>Ler o <code>id</code> do segmento dinâmico da URL.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>useState</code></p>
+</td><td colspan="1" rowspan="1"><p><code>FormularioEdicao</code></p>
+</td><td colspan="1" rowspan="1"><p>Guardar os valores alterados e a mensagem.</p>
+</td></tr>
+</table>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="20. Limites da edição local" duration="35">
+        <p>Ao pressionar &#34;Preparar alteração&#34;, criamos:</p>
+<pre><code language="language-tsx" class="language-tsx">const produtoAtualizado: Produto = {
+  id: produto.id,
+  ...formulario,
+};
+</code></pre>
+<p>Esse objeto existe apenas durante a execução atual da aplicação.</p>
+<h2 is-upgraded>O que funciona</h2>
+<ul>
+<li>editar os campos;</li>
+<li>validar os tipos;</li>
+<li>montar um novo objeto;</li>
+<li>apresentar o objeto no console;</li>
+<li>mostrar uma confirmação na tela.</li>
+</ul>
+<h2 is-upgraded>O que não acontece</h2>
+<ul>
+<li><code>produtos.ts</code> não é reescrito;</li>
+<li>outros usuários não recebem a mudança;</li>
+<li>atualizar a página não recupera a edição;</li>
+<li>fechar o navegador encerra aquele estado;</li>
+<li>não existe salvamento em banco de dados.</li>
+</ul>
+<h2 is-upgraded>Por que esse exercício continua importante?</h2>
+<p>Ele ensina o fluxo que também será necessário quando uma fonte externa for conectada:</p>
+<ol type="1">
+<li>definir tipos;</li>
+<li>receber ou importar uma lista;</li>
+<li>renderizar com <code>map</code>;</li>
+<li>filtrar com <code>filter</code>;</li>
+<li>transportar o <code>id</code>;</li>
+<li>localizar com <code>find</code>;</li>
+<li>inicializar o formulário;</li>
+<li>montar o objeto atualizado.</li>
+</ol>
+<p>Depois, a persistência será uma nova responsabilidade, sem apagar o aprendizado desta etapa.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="21. Diagnóstico de erros frequentes" duration="45">
+        <h2 is-upgraded>Erro: módulo não encontrado</h2>
+<pre><code language="language-text" class="language-text">Cannot find module &#39;../../data/produtos&#39;
+</code></pre>
+<p>Confira:</p>
+<ul>
+<li>nome da pasta <code>data</code>;</li>
+<li>nome <code>produtos.ts</code>;</li>
+<li>quantidade de <code>../</code>;</li>
+<li>diferença entre maiúsculas e minúsculas;</li>
+<li>local do arquivo que está importando.</li>
+</ul>
+<h2 is-upgraded>Erro: propriedade não existe</h2>
+<pre><code language="language-text" class="language-text">Property &#39;preço&#39; does not exist on type &#39;Produto&#39;
+</code></pre>
+<p>A interface usa <code>preco</code>, sem acento. O nome precisa ser idêntico.</p>
+<h2 is-upgraded>Erro: string não pode ser number</h2>
+<pre><code language="language-text" class="language-text">Type &#39;string&#39; is not assignable to type &#39;number&#39;
+</code></pre>
+<p>Converta valores numéricos vindos de campos:</p>
+<pre><code language="language-tsx" class="language-tsx">Number(event.target.value)
+</code></pre>
+<h2 is-upgraded>Cards não aparecem</h2>
+<p>Confira se o <code>map</code> devolve JSX e se está usando <code>produtosFiltrados</code>.</p>
+<pre><code language="language-tsx" class="language-tsx">produtosFiltrados.map((produto) =&gt; (
+  &lt;CardProduto key={produto.id} produto={produto} onEditar={abrirEdicao} /&gt;
+))
+</code></pre>
+<h2 is-upgraded>Sempre vai para Error</h2>
+<p>Verifique:</p>
+<ol type="1">
+<li>se a URL segue <code>/editar-produtos/ID</code>;</li>
+<li>se o valor foi convertido com <code>Number</code>;</li>
+<li>se existe produto com aquele <code>id</code>;</li>
+<li>se a comparação usa <code>===</code>;</li>
+<li>se <code>find</code> recebe a lista correta.</li>
+</ol>
+<h2 is-upgraded>O filtro não encontra maiúsculas</h2>
+<p>Normalize tanto o campo quanto os dados:</p>
+<pre><code language="language-ts" class="language-ts">produto.nome.toLowerCase().includes(busca.trim().toLowerCase())
+</code></pre>
+<h2 is-upgraded>Hook chamado em lugar incorreto</h2>
+<p>Hooks devem ficar:</p>
+<ul>
+<li>dentro de um componente React ou hook personalizado;</li>
+<li>no nível superior do componente;</li>
+<li>nunca dentro de <code>if</code>, <code>for</code>, <code>map</code> ou função de clique.</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="22. Exercícios práticos" duration="60">
+        <h2 is-upgraded>Exercício 1 — leitura de tipos</h2>
+<p>Explique com suas palavras:</p>
+<ol type="1">
+<li>por que <code>CategoriaProduto</code> é uma união;</li>
+<li>por que <code>preco</code> é <code>number</code>;</li>
+<li>por que <code>FormularioProduto</code> não possui <code>id</code>;</li>
+<li>o que significa <code>Produto[]</code>.</li>
+</ol>
+<h2 is-upgraded>Exercício 2 — map</h2>
+<p>Crie um array contendo apenas os preços:</p>
+<pre><code language="language-ts" class="language-ts">const precos = // complete
+</code></pre>
+<p>Depois, crie uma lista JSX contendo somente os nomes.</p>
+<h2 is-upgraded>Exercício 3 — filter</h2>
+<p>Crie uma lista contendo produtos com estoque menor ou igual a 5.</p>
+<pre><code language="language-ts" class="language-ts">const estoqueBaixo = // complete
+</code></pre>
+<h2 is-upgraded>Exercício 4 — find</h2>
+<p>Localize o produto com <code>id</code> 6.</p>
+<p>Depois, tente localizar o <code>id</code> 100 e explique o resultado.</p>
+<h2 is-upgraded>Exercício 5 — novo filtro</h2>
+<p>Adicione um checkbox:</p>
+<pre><code language="language-text" class="language-text">Mostrar apenas produtos disponíveis
+</code></pre>
+<p>Use outro <code>useState</code> booleano e integre a condição ao <code>filter</code> existente.</p>
+<h2 is-upgraded>Exercício 6 — leitura da URL</h2>
+<p>Explique o resultado de:</p>
+<pre><code language="language-text" class="language-text">/editar-produtos/3
+/editar-produtos/999
+/editar-produtos/abc
+/editar-produtos
+</code></pre>
+<h2 is-upgraded>Exercício 7 — apresentação final</h2>
+<p>Na página <code>EditarProdutos</code>, adicione antes do formulário:</p>
+<ul>
+<li><code>id</code> do produto;</li>
+<li>categoria atual;</li>
+<li>estoque atual;</li>
+<li>status atual.</li>
+</ul>
+<p>Use uma lista de descrição com <code>dl</code>, <code>dt</code> e <code>dd</code>.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="23. Respostas dos exercícios" duration="40">
+        <h2 is-upgraded>Exercício 1</h2>
+<ol type="1">
+<li>A união limita a categoria às opções conhecidas.</li>
+<li>O preço é numérico para permitir cálculo e formatação.</li>
+<li>O formulário edita dados do produto sem trocar sua identidade.</li>
+<li><code>Produto[]</code> é um array formado por objetos que obedecem à interface.</li>
+</ol>
+<h2 is-upgraded>Exercício 2</h2>
+<pre><code language="language-ts" class="language-ts">const precos = listaProdutos.map((produto) =&gt; produto.preco);
+</code></pre>
+<pre><code language="language-tsx" class="language-tsx">&lt;ul&gt;
+  {listaProdutos.map((produto) =&gt; (
+    &lt;li key={produto.id}&gt;{produto.nome}&lt;/li&gt;
+  ))}
+&lt;/ul&gt;
+</code></pre>
+<h2 is-upgraded>Exercício 3</h2>
+<pre><code language="language-ts" class="language-ts">const estoqueBaixo = listaProdutos.filter(
+  (produto) =&gt; produto.estoque &lt;= 5,
+);
+</code></pre>
+<h2 is-upgraded>Exercício 4</h2>
+<pre><code language="language-ts" class="language-ts">const produtoSeis = listaProdutos.find(
+  (produto) =&gt; produto.id === 6,
+);
+
+const produtoInexistente = listaProdutos.find(
+  (produto) =&gt; produto.id === 100,
+);
+</code></pre>
+<p><code>produtoSeis</code> recebe o objeto encontrado. <code>produtoInexistente</code> recebe <code>undefined</code>.</p>
+<h2 is-upgraded>Exercício 5</h2>
+<p>Estado:</p>
+<pre><code language="language-tsx" class="language-tsx">const [somenteDisponiveis, setSomenteDisponiveis] = useState(false);
+</code></pre>
+<p>Controle:</p>
+<pre><code language="language-tsx" class="language-tsx">&lt;label className=&#34;flex items-center gap-2&#34;&gt;
+  &lt;input
+    type=&#34;checkbox&#34;
+    checked={somenteDisponiveis}
+    onChange={(event) =&gt; setSomenteDisponiveis(event.target.checked)}
+  /&gt;
+  Mostrar apenas produtos disponíveis
+&lt;/label&gt;
+</code></pre>
+<p>Condição no <code>filter</code>:</p>
+<pre><code language="language-ts" class="language-ts">const correspondeAoStatus =
+  !somenteDisponiveis || produto.status === &#34;disponivel&#34;;
+
+return (
+  correspondeAoTexto &amp;&amp;
+  correspondeACategoria &amp;&amp;
+  correspondeAoStatus
+);
+</code></pre>
+<h2 is-upgraded>Exercício 6</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>URL</p>
+</td><td colspan="1" rowspan="1"><p>Resultado esperado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>/editar-produtos/3</code></p>
+</td><td colspan="1" rowspan="1"><p>Encontra e apresenta o produto 3.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>/editar-produtos/999</code></p>
+</td><td colspan="1" rowspan="1"><p>A rota corresponde, mas o produto não existe; mostra a mensagem local.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>/editar-produtos/abc</code></p>
+</td><td colspan="1" rowspan="1"><p>A rota corresponde, mas a conversão não gera um id válido; mostra a mensagem local.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>/editar-produtos</code></p>
+</td><td colspan="1" rowspan="1"><p>Não corresponde à rota com <code>:id</code>; o <code>errorElement</code> apresenta <code>Error</code>.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Exercício 7</h2>
+<pre><code language="language-tsx" class="language-tsx">&lt;dl className=&#34;mt-6 grid gap-4 rounded-2xl bg-slate-100 p-5 sm:grid-cols-2&#34;&gt;
+  &lt;div&gt;
+    &lt;dt className=&#34;text-sm text-slate-500&#34;&gt;Identificador&lt;/dt&gt;
+    &lt;dd className=&#34;font-semibold text-slate-900&#34;&gt;{produtoEncontrado.id}&lt;/dd&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;dt className=&#34;text-sm text-slate-500&#34;&gt;Categoria&lt;/dt&gt;
+    &lt;dd className=&#34;font-semibold text-slate-900&#34;&gt;{produtoEncontrado.categoria}&lt;/dd&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;dt className=&#34;text-sm text-slate-500&#34;&gt;Estoque&lt;/dt&gt;
+    &lt;dd className=&#34;font-semibold text-slate-900&#34;&gt;{produtoEncontrado.estoque}&lt;/dd&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;dt className=&#34;text-sm text-slate-500&#34;&gt;Status&lt;/dt&gt;
+    &lt;dd className=&#34;font-semibold text-slate-900&#34;&gt;{produtoEncontrado.status}&lt;/dd&gt;
+  &lt;/div&gt;
+&lt;/dl&gt;
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="24. Checklist final e referências" duration="30">
+        <h2 is-upgraded>Checklist técnico</h2>
+<ul>
+<li>[ ] <code>produto.ts</code> exporta os tipos.</li>
+<li>[ ] <code>produtos.ts</code> importa <code>Produto</code> com <code>import type</code>.</li>
+<li>[ ] <code>listaProdutos</code> está tipada como <code>Produto[]</code>.</li>
+<li>[ ] Todos os <code>id</code> são únicos.</li>
+<li>[ ] <code>Produtos</code> importa a lista diretamente.</li>
+<li>[ ] <code>map</code> renderiza <code>CardProduto</code> com uma <code>key</code> estável.</li>
+<li>[ ] <code>filter</code> combina texto e categoria.</li>
+<li>[ ] A busca usa <code>trim</code>, <code>toLowerCase</code> e <code>includes</code>.</li>
+<li>[ ] O card recebe dados e função por props.</li>
+<li>[ ] <code>useNavigate</code> envia o <code>id</code> pela URL.</li>
+<li>[ ] <code>useParams</code> lê o parâmetro dinâmico <code>:id</code>.</li>
+<li>[ ] <code>Number</code> converte o <code>id</code> textual.</li>
+<li>[ ] <code>find</code> localiza um único produto.</li>
+<li>[ ] Produto inexistente mostra uma mensagem e um link de volta para <code>/produtos</code>.</li>
+<li>[ ] O formulário usa estado controlado.</li>
+<li>[ ] Objetos são atualizados sem mutação direta.</li>
+<li>[ ] O material não usa efeito para copiar o array importado.</li>
+<li>[ ] O projeto mantém as rotas <code>/</code>, <code>/produtos</code> e <code>/editar-produtos/:id</code>, com <code>Error</code> em <code>errorElement</code>.</li>
+</ul>
+<h2 is-upgraded>Resumo do fluxo completo</h2>
+<pre><code language="language-text" class="language-text">1. Produto define o contrato.
+2. produtos.ts cria Produto[].
+3. routes/Produtos/index.tsx importa o array.
+4. useState guarda os filtros.
+5. filter seleciona os produtos.
+6. map cria os cards.
+7. CardProduto informa o id escolhido.
+8. useNavigate abre /editar-produtos/ID.
+9. useParams lê o id definido por :id.
+10. Number converte texto em número.
+11. find localiza o objeto.
+12. useState inicializa o formulário.
+13. o formulário monta um novo Produto em memória.
+</code></pre>
+<h2 is-upgraded>Referências oficiais</h2>
+<ul>
+<li><a href="https://react.dev/reference/react/hooks" target="_blank">React: referência dos Hooks</a></li>
+<li><a href="https://react.dev/reference/react/useState" target="_blank">React: useState</a></li>
+<li><a href="https://reactrouter.com/api/hooks/useNavigate" target="_blank">React Router: useNavigate</a></li>
+<li><a href="https://reactrouter.com/api/hooks/useParams" target="_blank">React Router: useParams</a></li>
+<li><a href="https://www.typescriptlang.org/docs/handbook/2/everyday-types.html" target="_blank">TypeScript: tipos cotidianos e uniões</a></li>
+<li><a href="https://vite.dev/guide/features.html" target="_blank">Vite: funcionalidades e módulos</a></li>
+</ul>
+<p>Você concluiu o processo completo de consumo de um arquivo TypeScript local, desde a definição do tipo até a apresentação dos dados na página de edição.</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
