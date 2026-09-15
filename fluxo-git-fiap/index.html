@@ -1,0 +1,138 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Dossiê Tático: Sobrevivência com Git e GitHub</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="fluxo-git-fiap"
+                  title="Dossiê Tático: Sobrevivência com Git e GitHub"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="O Protocolo de Segurança da FIAP (Deep Freeze)" duration="5">
+        <p>Bem-vindo ao esquadrão, recruta! Antes de tocarmos no código, você precisa entender como os computadores do laboratório da FIAP funcionam.</p>
+<p>As máquinas utilizam um sistema de &#34;congelamento&#34; de disco. Isso significa que <strong>absolutamente tudo que for salvo no disco C:\ (Documentos, Área de Trabalho, Downloads) será vaporizado</strong> assim que o computador for reiniciado.</p>
+<p>Para não perder horas de código, siga a regra de ouro:</p>
+<ol type="1">
+<li>Abra o <strong>Explorador de Arquivos</strong>.</li>
+<li>Acesse a unidade <strong><code>D:\</code></strong> (Dados).</li>
+<li>Crie uma pasta com o nome da sua turma (Ex: <code>1TDSPX</code>).</li>
+<li>Todo o seu trabalho do semestre será feito dentro desta pasta!</li>
+</ol>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Cenário 1: Iniciando a Missão na FIAP (Máquina Zerada)" duration="10">
+        <p>Você acabou de sentar no laboratório. A máquina foi reiniciada e está totalmente limpa. O código da aula passada está seguro na nuvem (GitHub), mas você precisa trazê-lo para o disco <code>D:\</code>.</p>
+<p>Abra a sua pasta no disco <code>D:\</code>, clique com o botão direito do mouse no fundo branco e escolha <strong>&#34;Open Git Bash here&#34;</strong>.</p>
+<h2 is-upgraded>Passo 1: A Identificação</h2>
+<p>Como a máquina &#34;esqueceu&#34; quem é você, o Git vai bloquear qualquer tentativa de salvar código se você não se identificar. Digite os comandos abaixo:</p>
+<pre><code language="language-bash" class="language-bash">git config --global user.name &#34;Seu Nome e Sobrenome&#34;
+git config --global user.email &#34;rm12345@fiap.com.br&#34;
+</code></pre>
+<p><strong>Dissecando o comando:</strong></p>
+<ul>
+<li><strong><code>git config</code></strong>: Chama a ferramenta de configurações internas do Git.</li>
+<li><strong><code>--global</code></strong>: Diz que essa regra vale para todos os projetos que você abrir neste computador hoje.</li>
+<li><strong><code>user.name</code></strong><strong> / </strong><strong><code>user.email</code></strong>: São as credenciais do seu &#34;crachá&#34;. Elas carimbam a sua autoria em cada linha de código alterada.</li>
+</ul>
+<h2 is-upgraded>Passo 2: O Download e Acesso</h2>
+<p>Agora vamos clonar o repositório oficial e abrir o editor de código:</p>
+<pre><code language="language-bash" class="language-bash">git clone https://github.com/1TDSPX/nome-do-repositorio.git
+cd nome-do-repositorio
+code .
+</code></pre>
+<p><strong>Dissecando o comando:</strong></p>
+<ul>
+<li><strong><code>git clone [URL]</code></strong>: Conecta no servidor do GitHub e faz um download completo do projeto para a sua pasta.</li>
+<li><strong><code>cd nome-do-repositorio</code></strong>: O comando <code>cd</code> significa <em>Change Directory</em> (Mudar de Diretório). Ele faz o terminal &#34;entrar&#34; na pasta que acabou de ser baixada. Se não fizer isso, os próximos comandos darão erro!</li>
+<li><strong><code>code .</code></strong>: O <code>code</code> chama o Visual Studio Code. O espaço seguido de ponto  <code>.</code> significa &#34;abra exatamente a pasta onde estou agora&#34;.</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Cenário 2: Retomando a Missão em Casa (O QG)" duration="5">
+        <p>Você chegou em casa. O seu notebook pessoal já tem o projeto clonado das semanas anteriores (você não precisa dar <code>git clone</code> de novo e nem configurar o seu nome).</p>
+<p>Porém, o código que está no seu notebook está <strong>desatualizado</strong>, pois não tem as alterações que você fez hoje de manhã no laboratório da FIAP.</p>
+<p>Abra a pasta do projeto no seu computador, clique com o botão direito e abra o <strong>Git Bash</strong>.</p>
+<pre><code language="language-bash" class="language-bash">git pull origin nome-da-branch
+code .
+</code></pre>
+<p><strong>Dissecando o comando:</strong></p>
+<ul>
+<li><strong><code>git pull</code></strong>: Comando de puxar. Ele acessa a nuvem e traz apenas as atualizações novas para a sua máquina.</li>
+<li><strong><code>origin</code></strong>: É o nome de código padrão que o Git dá para o servidor do GitHub.</li>
+<li><strong><code>nome-da-branch</code></strong>: É o nome exato da ramificação em que você estava trabalhando na faculdade (ex: <code>feature/site-inicial</code>).</li>
+<li><strong><code>code .</code></strong>: Abre o VS Code para você continuar programando exatamente de onde parou.</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Cenário 3: Iniciando um Novo Módulo ou Aula" duration="10">
+        <p>Sempre que formos começar um assunto novo (ex: sair da aula de HTML e entrar em CSS), nunca codificamos por cima do que já está feito. Criamos uma nova ramificação (branch) isolada a partir da base principal (<code>main</code>).</p>
+<p>Abra o Git Bash dentro do projeto e execute a sequência tática:</p>
+<pre><code language="language-bash" class="language-bash">git switch main
+git pull origin main
+git switch -c feature/nova-aula
+code .
+</code></pre>
+<p><strong>Dissecando os comandos:</strong></p>
+<ul>
+<li><strong><code>git switch main</code></strong>: Retorna você para o tronco principal da árvore do projeto.</li>
+<li><strong><code>git pull origin main</code></strong>: Atualiza o tronco principal. Garante que você está partindo do código mais recente aprovado pelo professor.</li>
+<li><strong><code>git switch -c feature/nova-aula</code></strong>: Cria e já entra em um &#34;galho&#34; novo. A letra <code>-c</code> significa <em>create</em> (criar). O nome do galho deve ser a missão do dia.</li>
+<li><strong><code>code .</code></strong>: Abre o editor para você trabalhar de forma segura, sem risco de quebrar o projeto principal.</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Cenário 4: Protocolo de Extração (Fim da Aula)" duration="10">
+        <p>A aula acabou e você precisa ir embora. Lembra que a máquina da FIAP vai apagar tudo quando reiniciar? Você é <strong>obrigado</strong> a mandar o seu código para a nuvem antes de fechar o VS Code!</p>
+<p>Abra o terminal integrado do VS Code (ou o Git Bash) e execute:</p>
+<pre><code language="language-bash" class="language-bash">git add .
+git commit -m &#34;feat: salvando progresso da aula de hoje&#34;
+git push -u origin feature/nova-aula
+</code></pre>
+<p><strong>Dissecando os comandos:</strong></p>
+<ul>
+<li><strong><code>git add .</code></strong>: O ponto  <code>.</code> pega todos os arquivos modificados e os coloca na &#34;área de preparação&#34; (como se estivesse empacotando os itens em uma caixa).</li>
+<li><strong><code>git commit -m "mensagem"</code></strong>: Fecha a caixa com fita adesiva e cola uma etiqueta (a mensagem) dizendo o que tem lá dentro.</li>
+<li><strong><code>git push</code></strong>: Empurra a caixa para o servidor do GitHub.</li>
+<li><strong><code> -u origin feature/nova-aula</code></strong>: O <code>-u</code> cria um elo entre a sua máquina e a nuvem, enviando a sua branch para o servidor <code>origin</code>. (Nas próximas vezes dentro desta mesma branch, você só precisará digitar <code>git push</code>).</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>

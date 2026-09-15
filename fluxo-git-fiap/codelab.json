@@ -1,0 +1,28 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-09-15T00:09:28-03:00",
+  "id": "fluxo-git-fiap",
+  "duration": 40,
+  "title": "Dossiê Tático: Sobrevivência com Git e GitHub",
+  "authors": "TDS Professor",
+  "summary": "Dossiê Tático: Fluxos de Trabalho com Git e GitHub (Base FIAP e QG Casa)",
+  "source": "fluxo-git-fiap.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "git",
+    "github",
+    "ferramentas"
+  ],
+  "tags": [
+    "fiap",
+    "frontend",
+    "tds"
+  ],
+  "url": "fluxo-git-fiap"
+}
