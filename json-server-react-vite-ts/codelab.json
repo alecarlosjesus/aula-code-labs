@@ -1,0 +1,31 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-09-16T12:44:46-03:00",
+  "id": "json-server-react-vite-ts",
+  "duration": 310,
+  "title": "JSON Server: CRUD de produtos no React com TypeScript",
+  "authors": "Alexandre Carlos de Jesus",
+  "summary": "Construa uma API local com JSON Server e integre listagem, cadastro, edição e exclusão em React com Vite e TypeScript.",
+  "source": "codelab-json-server-react-vite-ts.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "web",
+    "react",
+    "typescript",
+    "apis"
+  ],
+  "tags": [
+    "crud",
+    "json-server",
+    "react",
+    "typescript",
+    "vite"
+  ],
+  "url": "json-server-react-vite-ts"
+}

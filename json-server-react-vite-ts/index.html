@@ -1,0 +1,677 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>JSON Server: CRUD de produtos no React com TypeScript</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="json-server-react-vite-ts"
+                  title="JSON Server: CRUD de produtos no React com TypeScript"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="1. Conheça o resultado da prática" duration="10">
+        <p>Vamos transformar my-app em uma interface que lê e modifica produtos por uma API local. Ao final, cadastrar e editar alterará db.json. Recarregar a página não deve apagar uma operação já gravada.</p>
+<p>Pré-requisitos: projeto Vite + React + TypeScript funcionando; rotas da aula configuradas; Node compatível; noções de estado, eventos e objetos. Tailwind pode permanecer como já foi configurado; as classes do exemplo cuidam da apresentação, não da comunicação com a API.</p>
+<p class="image-container"><img alt="Interface, API e arquivo possuem responsabilidades diferentes." src="img\\8ba64be86aa0ca0a.png"></p>
+<p>Não execute todos os exemplos de terminal sem ler a etapa. Os testes de escrita modificam registros. Use somente os dados fictícios da prática.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="2. Preserve as rotas e organize os arquivos" duration="10">
+        <p>Mantenha createBrowserRouter e RouterProvider no main.tsx, com importações de react-router. App continua com Cabecalho, Outlet e Rodape. Home e Error não precisam ser substituídos.</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>URL da interface</p>
+</td><td colspan="1" rowspan="1"><p>Componente</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>/</p>
+</td><td colspan="1" rowspan="1"><p>src/routes/Home/index.tsx</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>/produtos</p>
+</td><td colspan="1" rowspan="1"><p>src/routes/Produtos/index.tsx</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>/editar-produtos/:id</p>
+</td><td colspan="1" rowspan="1"><p>src/routes/EditarProdutos/index.tsx</p>
+</td></tr>
+</table>
+<p>Error continua definido em errorElement. Não crie uma rota /Error nem outro roteador. O cadastro ficará na própria página Produtos, para evitar acrescentar uma rota não ensinada.</p>
+<p>Criaremos db.json na raiz; src/types/produto.ts para o contrato; src/services/produtos.ts para comunicação HTTP; src/components/FormularioProduto.tsx para os campos; e atualizaremos as duas páginas existentes.</p>
+<p>A URL http://localhost:3001/produtos é da API. Ela não entra na configuração de rotas do React. /produtos na interface e /produtos no servidor são atendidos por processos diferentes.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="3. Instale a versão usada na prática" duration="10">
+        <p>Na pasta que contém package.json:</p>
+<pre><code language="language-bash" class="language-bash">node -v
+npm -v
+npm install -D --save-exact json-server@1.0.0-beta.15
+npm list json-server
+</code></pre>
+<p>A versão fixada exige Node &gt;=22.12.0. Confira o resultado antes de prosseguir. Este codelab usa a linha v1 beta: ids são strings. Não misture instruções antigas de v0 sem conferir a versão.</p>
+<p>install instala; -D registra dependência de desenvolvimento; –save-exact fixa a versão. Preserve package-lock.json para repetir a instalação. Não instale o pacote globalmente nem substitua seu package.json pelo de outro projeto.</p>
+<p>Verificação: npm list deve mostrar json-server@1.0.0-beta.15 sem erro de dependência.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="4. Crie o banco de exemplo" duration="10">
+        <p>Crie my-app/db.json ao lado do package.json:</p>
+<pre><code language="language-json" class="language-json">{
+  &#34;produtos&#34;: [
+    { &#34;id&#34;: &#34;1&#34;, &#34;nome&#34;: &#34;Notebook&#34;, &#34;preco&#34;: 3500, &#34;estoque&#34;: 10 },
+    { &#34;id&#34;: &#34;2&#34;, &#34;nome&#34;: &#34;Mouse&#34;, &#34;preco&#34;: 120, &#34;estoque&#34;: 25 },
+    { &#34;id&#34;: &#34;3&#34;, &#34;nome&#34;: &#34;Teclado&#34;, &#34;preco&#34;: 210, &#34;estoque&#34;: 8 }
+  ]
+}
+</code></pre>
+<p>produtos é a coleção. Cada objeto possui id, nome, preco e estoque. Os ids têm aspas porque são texto; preço e estoque são números. Não coloque comentários no JSON nem vírgula após a última propriedade.</p>
+<p>Guarde uma cópia inicial antes das exclusões da prática. Não coloque db.json em public para tentar transformá-lo em banco: quem implementa as operações é JSON Server.</p>
+<p>Exercício: adicione um quarto produto com id único, respeitando os tipos. Confira as vírgulas entre objetos.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="5. Configure e execute a API" duration="10">
+        <p>Dentro da seção scripts existente em package.json, acrescente:</p>
+<pre><code language="language-json" class="language-json">&#34;api&#34;: &#34;json-server db.json --port 3001&#34;
+</code></pre>
+<p>Esse fragmento não é um arquivo JSON completo. Adicione a vírgula entre ele e os outros scripts, preservando dev, build e lint como já estão.</p>
+<p>No primeiro terminal:</p>
+<pre><code language="language-bash" class="language-bash">npm run api
+</code></pre>
+<p>No segundo, na mesma pasta:</p>
+<pre><code language="language-bash" class="language-bash">npm run dev
+</code></pre>
+<p>Deixe os dois ativos. No navegador, abra http://localhost:3001/produtos. Confira se recebeu um array. Depois consulte http://localhost:3001/produtos/1 e confira se recebeu um objeto.</p>
+<p>Não avance para o React enquanto a API não responder diretamente. Se a porta estiver ocupada, identifique o processo; não encerre um serviço desconhecido.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="6. Experimente HTTP antes de escrever componentes" duration="20">
+        <p class="image-container"><img alt="Relação entre operações HTTP e os dados." src="img\\86971bc00635dbb8.png"></p>
+<p>Os comandos abaixo são para Git Bash. As aspas simples protegem o JSON; a barra invertida no fim da linha continua o comando. Não cole esta sintaxe no CMD sem adaptá-la.</p>
+<p>Listar:</p>
+<pre><code language="language-bash" class="language-bash">curl -i http://localhost:3001/produtos
+</code></pre>
+<p>Cadastrar:</p>
+<pre><code language="language-bash" class="language-bash">curl -i -X POST http://localhost:3001/produtos \
+  -H &#39;Content-Type: application/json&#39; \
+  -d &#39;{&#34;nome&#34;:&#34;Produto de teste&#34;,&#34;preco&#34;:50,&#34;estoque&#34;:2}&#39;
+</code></pre>
+<ul>
+<li>-i inclui cabeçalhos na saída.</li>
+<li>-X escolhe o método.</li>
+<li>-H informa um cabeçalho.</li>
+<li>-d envia o corpo.</li>
+</ul>
+<p>Observe o id devolvido. Ele foi gerado pela API. Para alterar ou excluir esse registro, substitua ID-RETORNADO nos próximos comandos pelo valor real, sem sinais de menor e maior:</p>
+<pre><code language="language-bash" class="language-bash">curl -i -X PATCH http://localhost:3001/produtos/ID-RETORNADO \
+  -H &#39;Content-Type: application/json&#39; \
+  -d &#39;{&#34;estoque&#34;:7}&#39;
+</code></pre>
+<pre><code language="language-bash" class="language-bash">curl -i -X DELETE http://localhost:3001/produtos/ID-RETORNADO
+</code></pre>
+<p>Abra db.json e confira a alteração após cada operação. PUT representa substituição; usaremos PATCH para editar campos. Não reutilize o id de outro produto apenas para terminar o teste.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="7. Defina os tipos" duration="15">
+        <p>Crie src/types/produto.ts:</p>
+<pre><code language="language-ts" class="language-ts">export type Produto = {
+  id: string;
+  nome: string;
+  preco: number;
+  estoque: number;
+};
+
+// O cadastro não escolhe o identificador: a API o gera.
+export type DadosProduto = Omit&lt;Produto, &#34;id&#34;&gt;;
+</code></pre>
+<p>Produto descreve um objeto persistido. DadosProduto usa Omit para definir o mesmo contrato sem id. O formulário fornece esses dados; a API gera a identidade no cadastro.</p>
+<p>Omit existe na tipagem: não apaga propriedades de um objeto em execução. Se você inserir id manualmente num corpo HTTP, a tipagem não serve como barreira de segurança do servidor.</p>
+<p>Exercício: por que id não é number neste exemplo? Resposta: a versão v1 da API trabalha com ids textuais, inclusive os gerados no cadastro.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="8. Centralize as chamadas no serviço" duration="30">
+        <p>Crie src/services/produtos.ts:</p>
+<pre><code language="language-ts" class="language-ts">import type { DadosProduto, Produto } from &#34;../types/produto&#34;;
+
+const URL = &#34;http://localhost:3001/produtos&#34;;
+
+// fetch não rejeita automaticamente respostas HTTP como 404.
+function verificarResposta(resposta: Response): void {
+  if (!resposta.ok) {
+    if (resposta.status === 404) {
+      throw new Error(&#34;Produto não encontrado.&#34;);
+    }
+    throw new Error(`A operação falhou. HTTP ${resposta.status}.`);
+  }
+}
+
+export async function listarProdutos(signal?: AbortSignal): Promise&lt;Produto[]&gt; {
+  const resposta = await fetch(URL, { signal });
+  verificarResposta(resposta);
+  return resposta.json();
+}
+
+export async function buscarProduto(id: string, signal?: AbortSignal): Promise&lt;Produto&gt; {
+  const resposta = await fetch(`${URL}/${encodeURIComponent(id)}`, { signal });
+  verificarResposta(resposta);
+  return resposta.json();
+}
+
+export async function criarProduto(dados: DadosProduto): Promise&lt;Produto&gt; {
+  const resposta = await fetch(URL, {
+    method: &#34;POST&#34;,
+    headers: { &#34;Content-Type&#34;: &#34;application/json&#34; },
+    body: JSON.stringify(dados),
+  });
+  verificarResposta(resposta);
+  return resposta.json();
+}
+
+export async function atualizarProduto(id: string, dados: DadosProduto): Promise&lt;Produto&gt; {
+  const resposta = await fetch(`${URL}/${encodeURIComponent(id)}`, {
+    method: &#34;PATCH&#34;,
+    headers: { &#34;Content-Type&#34;: &#34;application/json&#34; },
+    body: JSON.stringify(dados),
+  });
+  verificarResposta(resposta);
+  return resposta.json();
+}
+
+export async function excluirProduto(id: string): Promise&lt;void&gt; {
+  const resposta = await fetch(`${URL}/${encodeURIComponent(id)}`, {
+    method: &#34;DELETE&#34;,
+  });
+  verificarResposta(resposta);
+  // Não precisamos interpretar um corpo para confirmar a exclusão.
+}
+</code></pre>
+<h2 is-upgraded>Leia as funções por responsabilidade</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Função</p>
+</td><td colspan="1" rowspan="1"><p>Entrada</p>
+</td><td colspan="1" rowspan="1"><p>Resultado aguardado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>listarProdutos</p>
+</td><td colspan="1" rowspan="1"><p>signal opcional</p>
+</td><td colspan="1" rowspan="1"><p>Produto[]</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>buscarProduto</p>
+</td><td colspan="1" rowspan="1"><p>id e signal opcional</p>
+</td><td colspan="1" rowspan="1"><p>Produto</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>criarProduto</p>
+</td><td colspan="1" rowspan="1"><p>DadosProduto</p>
+</td><td colspan="1" rowspan="1"><p>Produto criado com id</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>atualizarProduto</p>
+</td><td colspan="1" rowspan="1"><p>id e DadosProduto</p>
+</td><td colspan="1" rowspan="1"><p>Produto atualizado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>excluirProduto</p>
+</td><td colspan="1" rowspan="1"><p>id</p>
+</td><td colspan="1" rowspan="1"><p>Sem valor útil</p>
+</td></tr>
+</table>
+<p>Promise descreve o resultado futuro da função async. Não criamos Promise manualmente. return resposta.json() devolve uma operação que a função async incorpora; o chamador usa await para receber o valor final.</p>
+<p>verificarResposta lança um erro quando o status não indica sucesso. O catch ficará no componente ou formulário que precisa informar a pessoa. Centralizar a verificação evita repetir a mesma condição cinco vezes.</p>
+<p>JSON.stringify transforma o objeto enviado em texto. Content-Type descreve esse texto como JSON. encodeURIComponent protege a composição do segmento id da URL. O serviço de exclusão não tenta interpretar um corpo que não precisa utilizar.</p>
+<p>As anotações não validam os dados recebidos em execução. Este exercício usa uma API local cujo contrato controlamos. Um sistema real deve validar respostas externas e regras no servidor.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="9. Construa o formulário compartilhado" duration="35">
+        <p>Crie src/components/FormularioProduto.tsx:</p>
+<pre><code language="language-tsx" class="language-tsx">import { useState, type FormEvent } from &#34;react&#34;;
+import type { DadosProduto, Produto } from &#34;../types/produto&#34;;
+
+type Props = {
+  inicial?: Produto;
+  ocupado?: boolean;
+  onSalvar: (dados: DadosProduto) =&gt; Promise&lt;void&gt;;
+};
+
+export default function FormularioProduto({ inicial, ocupado = false, onSalvar }: Props) {
+  // Campos numéricos ficam como texto durante a digitação.
+  // Assim, é possível apagar o conteúdo sem convertê-lo imediatamente em zero.
+  const [nome, setNome] = useState(inicial?.nome ?? &#34;&#34;);
+  const [preco, setPreco] = useState(inicial ? String(inicial.preco) : &#34;&#34;);
+  const [estoque, setEstoque] = useState(inicial ? String(inicial.estoque) : &#34;&#34;);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState(&#34;&#34;);
+
+  async function enviar(event: FormEvent&lt;HTMLFormElement&gt;) {
+    event.preventDefault();
+    if (salvando || ocupado) return;
+    setErro(&#34;&#34;);
+
+    const valorPreco = Number(preco);
+    const valorEstoque = Number(estoque);
+
+    if (
+      nome.trim() === &#34;&#34; || preco.trim() === &#34;&#34; || estoque.trim() === &#34;&#34; ||
+      !Number.isFinite(valorPreco) || valorPreco &lt; 0 ||
+      !Number.isInteger(valorEstoque) || valorEstoque &lt; 0
+    ) {
+      setErro(&#34;Informe um nome, preço não negativo e estoque inteiro não negativo.&#34;);
+      return;
+    }
+
+    setSalvando(true);
+    try {
+      await onSalvar({ nome: nome.trim(), preco: valorPreco, estoque: valorEstoque });
+      // Limpar só depois do sucesso, e somente no cadastro.
+      if (!inicial) {
+        setNome(&#34;&#34;);
+        setPreco(&#34;&#34;);
+        setEstoque(&#34;&#34;);
+      }
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : &#34;Não foi possível salvar.&#34;);
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    &lt;form onSubmit={enviar} className=&#34;space-y-4 rounded-xl border p-5&#34;&gt;
+      &lt;fieldset disabled={salvando || ocupado} className=&#34;space-y-4&#34;&gt;
+        &lt;legend className=&#34;font-semibold&#34;&gt;Dados do produto&lt;/legend&gt;
+        &lt;label className=&#34;block&#34;&gt;
+          Nome
+          &lt;input required value={nome} onChange={(e) =&gt; setNome(e.target.value)}
+            className=&#34;block w-full rounded border p-2&#34; /&gt;
+        &lt;/label&gt;
+        &lt;label className=&#34;block&#34;&gt;
+          Preço
+          &lt;input required type=&#34;number&#34; min=&#34;0&#34; step=&#34;0.01&#34; value={preco}
+            onChange={(e) =&gt; setPreco(e.target.value)}
+            className=&#34;block w-full rounded border p-2&#34; /&gt;
+        &lt;/label&gt;
+        &lt;label className=&#34;block&#34;&gt;
+          Estoque
+          &lt;input required type=&#34;number&#34; min=&#34;0&#34; step=&#34;1&#34; value={estoque}
+            onChange={(e) =&gt; setEstoque(e.target.value)}
+            className=&#34;block w-full rounded border p-2&#34; /&gt;
+        &lt;/label&gt;
+        &lt;button type=&#34;submit&#34;
+          className=&#34;rounded bg-slate-900 px-4 py-2 text-white disabled:opacity-50&#34;&gt;
+          {salvando ? &#34;Salvando...&#34; : &#34;Salvar produto&#34;}
+        &lt;/button&gt;
+      &lt;/fieldset&gt;
+      {erro &amp;&amp; &lt;p role=&#34;alert&#34; className=&#34;text-red-700&#34;&gt;{erro}&lt;/p&gt;}
+    &lt;/form&gt;
+  );
+}
+</code></pre>
+<h2 is-upgraded>Entenda os detalhes</h2>
+<ul>
+<li>inicial? permite receber um produto na edição e não receber no cadastro.</li>
+<li>ocupado? permite que a página bloqueie o formulário durante outra operação.</li>
+<li>onSalvar é uma função recebida por props. O formulário não decide se deve fazer POST ou PATCH.</li>
+<li>inicial?.nome usa acesso opcional; ?? fornece o texto vazio quando o valor é null ou undefined.</li>
+<li>String converte o número inicial em texto para o campo.</li>
+<li>value e onChange mantêm os campos controlados.</li>
+<li>FormEvent descreve o evento de envio do formulário.</li>
+<li>preventDefault evita a navegação tradicional do formulário.</li>
+<li>trim rejeita nome formado apenas por espaços.</li>
+<li>finally libera a interface tanto em sucesso quanto em falha.</li>
+</ul>
+<p>O teste de string vazia vem antes de aceitar a conversão. Isso evita tratar Number(&#34;&#34;) como um zero digitado intencionalmente. O estoque precisa ser inteiro; o preço pode ter casas decimais.</p>
+<p>Não limpe os campos quando a API falhar. A pessoa deve poder corrigir ou tentar novamente sem redigitar tudo.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="10. Integre listagem, cadastro e exclusão" duration="40">
+        <p>Atualize src/routes/Produtos/index.tsx:</p>
+<pre><code language="language-tsx" class="language-tsx">import { useEffect, useState } from &#34;react&#34;;
+import { Link } from &#34;react-router&#34;;
+import FormularioProduto from &#34;../../components/FormularioProduto&#34;;
+import { criarProduto, excluirProduto, listarProdutos } from &#34;../../services/produtos&#34;;
+import type { DadosProduto, Produto } from &#34;../../types/produto&#34;;
+
+export default function Produtos() {
+  const [produtos, setProdutos] = useState&lt;Produto[]&gt;([]);
+  const [carregando, setCarregando] = useState(true);
+  const [ocupado, setOcupado] = useState(false);
+  const [erro, setErro] = useState(&#34;&#34;);
+  const [mensagem, setMensagem] = useState(&#34;&#34;);
+
+  useEffect(() =&gt; {
+    const controller = new AbortController();
+    async function carregar() {
+      try {
+        const dados = await listarProdutos(controller.signal);
+        if (!controller.signal.aborted) setProdutos(dados);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setErro(error instanceof Error ? error.message : &#34;Falha ao carregar.&#34;);
+        }
+      } finally {
+        if (!controller.signal.aborted) setCarregando(false);
+      }
+    }
+    carregar();
+    return () =&gt; controller.abort();
+  }, []);
+
+  async function cadastrar(dados: DadosProduto): Promise&lt;void&gt; {
+    setOcupado(true);
+    setMensagem(&#34;&#34;);
+    try {
+      const criado = await criarProduto(dados);
+      // A API devolve o objeto com id. Não inventamos o id no React.
+      setProdutos((atuais) =&gt; [...atuais, criado]);
+      setMensagem(&#34;Produto cadastrado.&#34;);
+    } finally {
+      setOcupado(false);
+    }
+    // Uma falha sobe para o catch do formulário, que mantém os campos.
+  }
+
+  async function remover(produto: Produto) {
+    if (ocupado || !window.confirm(`Excluir ${produto.nome}?`)) return;
+    setOcupado(true);
+    setErro(&#34;&#34;);
+    setMensagem(&#34;&#34;);
+    try {
+      await excluirProduto(produto.id);
+      // A tela muda somente depois da confirmação da API.
+      setProdutos((atuais) =&gt; atuais.filter((p) =&gt; p.id !== produto.id));
+      setMensagem(&#34;Produto excluído.&#34;);
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : &#34;Falha ao excluir.&#34;);
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  return (
+    &lt;main className=&#34;mx-auto max-w-4xl space-y-6 p-6&#34;&gt;
+      &lt;h1 className=&#34;text-3xl font-bold&#34;&gt;Produtos&lt;/h1&gt;
+      {carregando &amp;&amp; &lt;p role=&#34;status&#34;&gt;Carregando...&lt;/p&gt;}
+      {erro &amp;&amp; &lt;p role=&#34;alert&#34; className=&#34;text-red-700&#34;&gt;{erro}&lt;/p&gt;}
+      &lt;p role=&#34;status&#34;&gt;{mensagem}&lt;/p&gt;
+      &lt;ul className=&#34;space-y-3&#34;&gt;
+        {produtos.map((produto) =&gt; (
+          &lt;li key={produto.id} className=&#34;rounded-xl border p-4&#34;&gt;
+            &lt;h2 className=&#34;font-semibold&#34;&gt;{produto.nome}&lt;/h2&gt;
+            &lt;p&gt;{produto.preco.toLocaleString(&#34;pt-BR&#34;, {
+              style: &#34;currency&#34;, currency: &#34;BRL&#34;,
+            })} | Estoque: {produto.estoque}&lt;/p&gt;
+            &lt;div className=&#34;mt-3 flex gap-4&#34;&gt;
+              {!ocupado &amp;&amp; (
+                &lt;Link className=&#34;underline&#34; to={`/editar-produtos/${produto.id}`}&gt;
+                  Editar
+                &lt;/Link&gt;
+              )}
+              &lt;button disabled={ocupado} onClick={() =&gt; remover(produto)}
+                className=&#34;text-red-700 disabled:opacity-50&#34;&gt;Excluir&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/li&gt;
+        ))}
+      &lt;/ul&gt;
+      {!carregando &amp;&amp; !erro &amp;&amp; produtos.length === 0 &amp;&amp; &lt;p&gt;Nenhum produto.&lt;/p&gt;}
+      &lt;section aria-labelledby=&#34;novo-produto&#34;&gt;
+        &lt;h2 id=&#34;novo-produto&#34; className=&#34;mb-3 text-xl font-semibold&#34;&gt;Novo produto&lt;/h2&gt;
+        &lt;FormularioProduto ocupado={carregando || ocupado} onSalvar={cadastrar} /&gt;
+      &lt;/section&gt;
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+<h2 is-upgraded>Acompanhe a listagem</h2>
+<ol type="1">
+<li>produtos começa vazio e carregando começa verdadeiro.</li>
+<li>O efeito chama listarProdutos.</li>
+<li>O serviço consulta o servidor.</li>
+<li>setProdutos armazena a resposta.</li>
+<li>map devolve um li para cada objeto.</li>
+<li>Ao sair da página, a limpeza cancela a leitura pendente.</li>
+</ol>
+<h2 is-upgraded>Acompanhe o cadastro</h2>
+<p>onSalvar recebe cadastrar. O formulário chama essa função com DadosProduto. Após o POST, usamos o objeto devolvido, que já contém id. A atualização funcional [...atuais, criado] acrescenta o item sem mutar o array anterior.</p>
+<p>cadastrar possui finally, mas não catch: a falha é propagada ao catch de FormularioProduto. Assim, o formulário mostra a mensagem e preserva a digitação. Não devolva sucesso falso depois de capturar um erro.</p>
+<h2 is-upgraded>Acompanhe a exclusão</h2>
+<p>A confirmação antecede DELETE. Somente depois do sucesso usamos filter para retirar o item da tela. Filter não apaga o banco; DELETE faz isso. Se a API falhar, o item permanece e a mensagem aparece.</p>
+<p>A listagem inicial bloqueia gravações até terminar, evitando que uma resposta inicial atrasada sobrescreva o resultado de um cadastro. ocupado bloqueia operações simultâneas pela interface desta página.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="11. Implemente a edição pela rota dinâmica" duration="35">
+        <p>Atualize src/routes/EditarProdutos/index.tsx:</p>
+<pre><code language="language-tsx" class="language-tsx">import { useEffect, useState } from &#34;react&#34;;
+import { Link, useNavigate, useParams } from &#34;react-router&#34;;
+import FormularioProduto from &#34;../../components/FormularioProduto&#34;;
+import { atualizarProduto, buscarProduto } from &#34;../../services/produtos&#34;;
+import type { DadosProduto, Produto } from &#34;../../types/produto&#34;;
+
+export default function EditarProdutos() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [produto, setProduto] = useState&lt;Produto | null&gt;(null);
+  const [erro, setErro] = useState(&#34;&#34;);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() =&gt; {
+    const controller = new AbortController();
+    setCarregando(true);
+    setErro(&#34;&#34;);
+    setProduto(null);
+    async function carregar() {
+      try {
+        if (!id) throw new Error(&#34;Identificador ausente.&#34;);
+        const encontrado = await buscarProduto(id, controller.signal);
+        if (!controller.signal.aborted) setProduto(encontrado);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setErro(error instanceof Error ? error.message : &#34;Falha ao consultar.&#34;);
+        }
+      } finally {
+        if (!controller.signal.aborted) setCarregando(false);
+      }
+    }
+    carregar();
+    return () =&gt; controller.abort();
+  }, [id]);
+
+  async function salvar(dados: DadosProduto): Promise&lt;void&gt; {
+    if (!id) throw new Error(&#34;Identificador ausente.&#34;);
+    await atualizarProduto(id, dados);
+    // Só voltar depois da confirmação de gravação.
+    navigate(&#34;/produtos&#34;);
+  }
+
+  return (
+    &lt;main className=&#34;mx-auto max-w-2xl space-y-4 p-6&#34;&gt;
+      &lt;h1 className=&#34;text-3xl font-bold&#34;&gt;Editar produto&lt;/h1&gt;
+      {carregando &amp;&amp; &lt;p role=&#34;status&#34;&gt;Carregando produto...&lt;/p&gt;}
+      {erro &amp;&amp; &lt;p role=&#34;alert&#34; className=&#34;text-red-700&#34;&gt;{erro}&lt;/p&gt;}
+      {!carregando &amp;&amp; produto &amp;&amp; (
+        &lt;FormularioProduto key={produto.id} inicial={produto} onSalvar={salvar} /&gt;
+      )}
+      &lt;Link to=&#34;/produtos&#34; className=&#34;inline-block underline&#34;&gt;Voltar para produtos&lt;/Link&gt;
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+<p class="image-container"><img alt="Da listagem ao formulário de edição e à confirmação da API." src="img\\9e3a6db9373dbe57.png"></p>
+<p>useParams fornece id como texto. Não use Number(id). O serviço consulta o produto individual, sem baixar o array inteiro. O efeito depende de [id] porque uma mudança do parâmetro exige outra consulta.</p>
+<p>Produto | null representa um objeto encontrado ou sua ausência inicial. Não montamos o formulário antes de obter o produto. key={produto.id} faz o formulário receber uma nova identidade ao trocar o registro; seu useState inicial não deve reaproveitar os campos do produto anterior.</p>
+<p>salvar aguarda PATCH antes de navigate. Se ocorrer falha, ela sobe até o catch do formulário e a página continua aberta. Ao retornar à listagem, seu efeito realiza uma nova leitura.</p>
+<p>O cancelamento desta prática protege leituras. Abortar uma requisição no navegador não desfaz uma gravação que chegou ao servidor. Evite navegar durante uma gravação; controle de mutações entre páginas é uma evolução além desta prática inicial.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="12. Teste o fluxo completo" duration="20">
+        <table>
+<tr><td colspan="1" rowspan="1"><p>Teste</p>
+</td><td colspan="1" rowspan="1"><p>Resultado esperado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Abrir /produtos</p>
+</td><td colspan="1" rowspan="1"><p>Lista recebida da API.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Cadastrar Monitor</p>
+</td><td colspan="1" rowspan="1"><p>Novo id e produto visível.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Recarregar</p>
+</td><td colspan="1" rowspan="1"><p>Monitor continua na lista.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Clicar em Editar</p>
+</td><td colspan="1" rowspan="1"><p>URL /editar-produtos/ID e campos preenchidos.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Alterar preço e salvar</p>
+</td><td colspan="1" rowspan="1"><p>Retorno à lista com preço atualizado.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Excluir e confirmar</p>
+</td><td colspan="1" rowspan="1"><p>Registro some da lista e de db.json.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Cancelar a confirmação</p>
+</td><td colspan="1" rowspan="1"><p>Nenhuma exclusão.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Consultar id inexistente</p>
+</td><td colspan="1" rowspan="1"><p>Mensagem de erro e link para voltar.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Parar API e tentar salvar</p>
+</td><td colspan="1" rowspan="1"><p>Mensagem de falha; campos preservados.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Enviar estoque negativo</p>
+</td><td colspan="1" rowspan="1"><p>Validação impede o envio.</p>
+</td></tr>
+</table>
+<p>Abra Network no navegador: confira método, endereço, corpo e status. Depois execute npm run build e, se estiver configurado, npm run lint. Não desative regras só para esconder uma mensagem.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="13. Explore consultas sem quebrar os tipos" duration="15">
+        <p>Teste os endereços:</p>
+<pre><code language="language-text" class="language-text">http://localhost:3001/produtos?nome=Mouse
+http://localhost:3001/produtos?_sort=preco
+http://localhost:3001/produtos?_page=1&amp;_per_page=2
+</code></pre>
+<p>Na paginação v1, o resultado é um objeto com metadados e data. O endpoint sem paginação usado no serviço retorna array. Não troque a URL e mantenha cegamente a mesma tipagem.</p>
+<p>Exercício: em uma função separada, modele ao menos items, pages e data: Produto[]. Apresente a quantidade total antes de renderizar data.map. Confira o formato realmente recebido em Network.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="14. Diagnóstico e limites do ambiente" duration="15">
+        <table>
+<tr><td colspan="1" rowspan="1"><p>Sintoma</p>
+</td><td colspan="1" rowspan="1"><p>Próxima verificação</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>API não abre</p>
+</td><td colspan="1" rowspan="1"><p>Terminal npm run api e porta 3001.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>React não abre</p>
+</td><td colspan="1" rowspan="1"><p>Terminal Vite e endereço informado por ele.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>404</p>
+</td><td colspan="1" rowspan="1"><p>Caminho produtos e id real.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Erro de sintaxe JSON</p>
+</td><td colspan="1" rowspan="1"><p>Aspas, vírgulas e números.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Registro reaparece</p>
+</td><td colspan="1" rowspan="1"><p>Houve DELETE ou só filter?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Resultado não acompanha edição</p>
+</td><td colspan="1" rowspan="1"><p>A gravação foi aguardada antes de voltar?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Duas leituras em desenvolvimento</p>
+</td><td colspan="1" rowspan="1"><p>Confira StrictMode e limpeza do efeito.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Erro de CORS</p>
+</td><td colspan="1" rowspan="1"><p>Confira URL e resposta; não use no-cors para mascarar.</p>
+</td></tr>
+</table>
+<p>localhost refere-se ao dispositivo que abre a página. A API do seu computador não é publicada junto com o front-end. Não armazene dados pessoais reais ou tokens neste banco de testes.</p>
+<p>Se quiser recomeçar com os dados iniciais, pare a API, preserve o arquivo atual se precisar dele, restaure a cópia inicial e reinicie. Isso substitui o estado atual da prática.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="15. Exercícios e gabarito" duration="30">
+        <ol type="1">
+<li>Inclua descricao nos dados e no formulário.</li>
+<li>Calcule produtosFiltrados a partir de um campo de busca, sem novo estado para guardar esse array.</li>
+<li>Explique por que usar id textual muda a edição em relação ao arquivo .ts anterior.</li>
+<li>Explique por que Promise ainda exige await ao excluir.</li>
+<li>Acrescente uma mensagem visível depois de salvar a edição, preservando o comportamento das rotas.</li>
+</ol>
+<h2 is-upgraded>Respostas orientadoras</h2>
+<ol type="1">
+<li>Atualize Produto, db.json, estado inicial, campo e objeto enviado. DadosProduto passa a herdar descricao automaticamente pelo Omit.</li>
+<li>Use filter com nome.toLowerCase().includes(busca.trim().toLowerCase()). É um filtro da lista já recebida.</li>
+<li>Não converta id para número; ids gerados não precisam ser numéricos. Consulte o endpoint individual.</li>
+<li>void significa ausência de valor útil, não ausência de espera. Aguarde a confirmação antes de retirar o item da tela.</li>
+<li>Uma possibilidade é apresentar a confirmação na página de edição antes de oferecer o retorno. Outra é passar uma mensagem de navegação e tratá-la explicitamente na listagem. Não use uma variável local como se persistisse entre páginas.</li>
+</ol>
+<h2 is-upgraded>Explique sem copiar</h2>
+<p>O que cada arquivo faz? Onde está o catch de um cadastro? Quem gera o id? Qual método grava? Qual método só muda o array da tela? O que acontece ao desligar a API?</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="16. Checklist e referências" duration="5">
+        <ul>
+<li>[ ] Instalei a versão indicada e conferi o Node.</li>
+<li>[ ] Mantenho dois processos ativos.</li>
+<li>[ ] db.json está na raiz e possui JSON válido.</li>
+<li>[ ] As rotas ensinadas foram preservadas.</li>
+<li>[ ] O contrato utiliza id como string.</li>
+<li>[ ] POST, PATCH e DELETE foram testados.</li>
+<li>[ ] A interface trata espera, erro e sucesso.</li>
+<li>[ ] A atualização da tela só confirma uma escrita após resposta.</li>
+<li>[ ] Testei persistência e falha de rede.</li>
+<li>[ ] Sei explicar tipos, props, estados, efeitos e métodos de array.</li>
+</ul>
+<p><a href="https://github.com/typicode/json-server" target="_blank">JSON Server</a></p>
+<p><a href="https://react.dev/reference/react/useEffect" target="_blank">React: useEffect</a></p>
+<p><a href="https://reactrouter.com/api/hooks/useParams" target="_blank">React Router: useParams</a></p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch" target="_blank">MDN: Fetch</a></p>
+<p><a href="https://docs.npmjs.com/cli/v11/commands/npm-install/" target="_blank">npm: instalação</a></p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
