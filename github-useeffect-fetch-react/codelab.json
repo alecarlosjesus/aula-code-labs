@@ -1,0 +1,33 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-09-16T08:07:17-03:00",
+  "id": "github-useeffect-fetch-react",
+  "duration": 615,
+  "title": "React e TypeScript: listagem e busca de usuários na API do GitHub",
+  "authors": "Alexandre Carlos de Jesus",
+  "summary": "Consuma a API do GitHub no React com TypeScript: tipos, estados, useEffect, fetch, async e await, erros, formulário controlado e renderização de usuários.",
+  "source": "codelab-github-useeffect-fetch-react.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "web",
+    "react",
+    "typescript",
+    "apis"
+  ],
+  "tags": [
+    "fetch",
+    "github",
+    "hooks",
+    "react",
+    "typescript",
+    "useeffect",
+    "usestate"
+  ],
+  "url": "github-useeffect-fetch-react"
+}

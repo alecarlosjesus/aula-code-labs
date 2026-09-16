@@ -15,6 +15,7 @@ Os guias abaixo foram desenvolvidos no formato Google Codelabs para facilitar o 
 * [Dominando Ícones no React (react-icons)](https://alecarlosjesus.github.io/aula-code-labs/react-icons-vite/)
 * [Invocando o Drone de Comunicação: IBM Watson](https://alecarlosjesus.github.io/aula-code-labs/watson-react-ts/)
 * [Consumo de arquivo TypeScript no Vite + React + TypeScript](https://alecarlosjesus.github.io/aula-code-labs/consumo-arquivo-ts-vite-react/)
+* [React e TypeScript: listagem e busca de usuários na API do GitHub](https://alecarlosjesus.github.io/aula-code-labs/github-useeffect-fetch-react/)
 
 * *(Novas aulas serão adicionadas aqui...)*
 

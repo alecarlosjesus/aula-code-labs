@@ -1,0 +1,1353 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>React e TypeScript: listagem e busca de usuários na API do GitHub</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="github-useeffect-fetch-react"
+                  title="React e TypeScript: listagem e busca de usuários na API do GitHub"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="1. O que vamos construir" duration="15">
+        <p>Vamos transformar o componente <code>Home</code> em uma tela que consulta usuários públicos do GitHub. O trabalho tem duas partes independentes:</p>
+<ol type="1">
+<li>Quando a página aparece, carregar uma lista de usuários.</li>
+<li>Quando alguém informar um login e pesquisar, consultar aquele usuário específico.</li>
+</ol>
+<p>Não vamos criar um projeto novo nem alterar as rotas que já funcionam. O arquivo principal desta prática será <code>src/routes/Home/index.tsx</code>.</p>
+<h2 is-upgraded>O resultado esperado</h2>
+<p>A tela apresentará um campo de pesquisa, um botão, mensagens de carregamento, mensagens de erro e uma lista com identificadores, logins e avatares. A pesquisa exibirá o login encontrado sem substituir a lista inicial.</p>
+<h2 is-upgraded>Antes de começar</h2>
+<p>Você precisa ter:</p>
+<ul>
+<li>o projeto <code>my-app</code> com Vite, React e TypeScript funcionando;</li>
+<li>a rota <code>/</code> apresentando o componente <code>Home</code>;</li>
+<li>acesso à internet;</li>
+<li>um navegador com ferramentas de desenvolvimento;</li>
+<li>conhecimentos iniciais de funções, objetos, arrays e JSX.</li>
+</ul>
+<p>Abra o terminal na pasta que contém <code>my-app</code>:</p>
+<pre><code language="language-bash" class="language-bash">cd my-app
+npm run dev
+</code></pre>
+<p><code>cd</code> muda a pasta atual. <code>npm run dev</code> executa o script <code>dev</code> configurado no <code>package.json</code>. Abra o endereço que o terminal apresentar; não presuma que a porta será sempre a mesma.</p>
+<h2 is-upgraded>Como utilizar este material</h2>
+<p>Os pequenos blocos das etapas intermediárias explicam partes do código. Não cole todas as versões em sequência dentro do mesmo arquivo. Na etapa 18 existe a versão completa, destinada a substituir o conteúdo de <code>src/routes/Home/index.tsx</code>.</p>
+<p>Cada exercício deve ser tentado antes da leitura do gabarito. Errar durante a prática ajuda a localizar o conceito que ainda precisa de atenção.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="2. Preservando a organização e as rotas" duration="15">
+        <p>Mantenha os arquivos de rota existentes:</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Arquivo</p>
+</td><td colspan="1" rowspan="1"><p>Responsabilidade nesta aplicação</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>src/main.tsx</code></p>
+</td><td colspan="1" rowspan="1"><p>Configura <code>createBrowserRouter</code> e renderiza <code>RouterProvider</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>src/App.tsx</code></p>
+</td><td colspan="1" rowspan="1"><p>Mantém <code>Cabecalho</code>, <code>Outlet</code> e <code>Rodape</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>src/routes/Home/index.tsx</code></p>
+</td><td colspan="1" rowspan="1"><p>Recebe o código desta prática.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>src/routes/Produtos/index.tsx</code></p>
+</td><td colspan="1" rowspan="1"><p>Permanece como está.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>src/routes/EditarProdutos/index.tsx</code></p>
+</td><td colspan="1" rowspan="1"><p>Permanece como está.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>src/routes/Error/index.tsx</code></p>
+</td><td colspan="1" rowspan="1"><p>Continua configurado em <code>errorElement</code>.</p>
+</td></tr>
+</table>
+<p>As rotas continuam sendo <code>/</code>, <code>/produtos</code> e <code>/editar-produtos/:id</code>.</p>
+<p>O <code>Outlet</code> de <code>App</code> apresenta a rota filha. Quando a URL é <code>/</code>, ele apresenta <code>Home</code>. Não adicione outro <code>BrowserRouter</code>, outro <code>RouterProvider</code> ou novas rotas para realizar esta prática.</p>
+<h2 is-upgraded>Duas URLs com funções diferentes</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Exemplo</p>
+</td><td colspan="1" rowspan="1"><p>Quem atende?</p>
+</td><td colspan="1" rowspan="1"><p>Para que serve?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>/</code></p>
+</td><td colspan="1" rowspan="1"><p>O roteador da aplicação</p>
+</td><td colspan="1" rowspan="1"><p>Apresenta <code>Home</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>https://api.github.com/users</code></p>
+</td><td colspan="1" rowspan="1"><p>O servidor do GitHub</p>
+</td><td colspan="1" rowspan="1"><p>Fornece dados de usuários.</p>
+</td></tr>
+</table>
+<p>A URL da API não deve entrar no array de rotas do React. Ela será usada pelo <code>fetch</code>.</p>
+<h2 is-upgraded>O componente Error recebe todos os erros?</h2>
+<p>Não. Um erro capturado no <code>catch</code> da pesquisa será tratado pelo próprio componente. Não é necessário navegar para outra página para dizer que um login não foi encontrado.</p>
+<p><strong>Pratique:</strong> explique por que a rota <code>/</code> e a URL da API não são a mesma coisa.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="3. Entendendo API, HTTP e JSON antes do código" duration="25">
+        <p>Uma API é uma interface de comunicação entre programas. Nesta prática, o navegador solicita informações e o servidor do GitHub devolve uma resposta.</p>
+<p>Um endpoint é um endereço de uma operação da API. Usaremos dois:</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Endpoint</p>
+</td><td colspan="1" rowspan="1"><p>Resultado esperado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>https://api.github.com/users</code></p>
+</td><td colspan="1" rowspan="1"><p>Uma lista de usuários, representada por um array.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>https://api.github.com/users/octocat</code></p>
+</td><td colspan="1" rowspan="1"><p>Um objeto representando o usuário solicitado.</p>
+</td></tr>
+</table>
+<p>O segundo endereço consulta um login exato. Não é uma busca por parte do nome, nome completo, e-mail ou biografia. Já a listagem é paginada: não representa todos os usuários do GitHub. Consulte os contratos dos endpoints na <a href="https://docs.github.com/en/rest/users/users" target="_blank">documentação do GitHub</a>.</p>
+<h2 is-upgraded>O que é HTTP?</h2>
+<p>É o protocolo usado nesta troca. A resposta inclui um código de status, cabeçalhos e um corpo. Um status de sucesso não é o próprio conteúdo; ele apenas informa o resultado da operação HTTP.</p>
+<h2 is-upgraded>O que é JSON?</h2>
+<p>É um formato textual de dados. Exemplo ilustrativo, não uma cópia completa da resposta real:</p>
+<pre><code language="language-json" class="language-json">{
+  &#34;login&#34;: &#34;usuario-exemplo&#34;,
+  &#34;id&#34;: 123,
+  &#34;avatar_url&#34;: &#34;https://example.com/avatar.png&#34;
+}
+</code></pre>
+<p>No JSON, nomes das propriedades ficam entre aspas duplas. O número <code>123</code> não está entre aspas porque é numérico.</p>
+<p>Quando existem vários objetos, usamos uma lista:</p>
+<pre><code language="language-json" class="language-json">[
+  { &#34;login&#34;: &#34;ana&#34;, &#34;id&#34;: 1, &#34;avatar_url&#34;: &#34;https://example.com/ana.png&#34; },
+  { &#34;login&#34;: &#34;bia&#34;, &#34;id&#34;: 2, &#34;avatar_url&#34;: &#34;https://example.com/bia.png&#34; }
+]
+</code></pre>
+<p>Essas URLs de exemplo não são imagens para baixar. Os avatares da prática virão do campo <code>avatar_url</code> da resposta real.</p>
+<h2 is-upgraded>Comparando com o arquivo TypeScript local</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Arquivo <code>.ts</code> importado</p>
+</td><td colspan="1" rowspan="1"><p>API pela rede</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Os dados fazem parte do código da aplicação.</p>
+</td><td colspan="1" rowspan="1"><p>Os dados vêm de outro sistema.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Um <code>import</code> fornece o valor exportado.</p>
+</td><td colspan="1" rowspan="1"><p>Uma requisição precisa terminar.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Não existe status HTTP nesse acesso local.</p>
+</td><td colspan="1" rowspan="1"><p>A resposta possui status HTTP.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Não há espera de rede para acessar o array importado.</p>
+</td><td colspan="1" rowspan="1"><p>Precisamos lidar com espera e falhas.</p>
+</td></tr>
+</table>
+<p>Neste codelab, <code>async</code> e <code>await</code> são parte central do conteúdo porque agora existe comunicação de rede.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="4. Lendo o tipo TipoUserGit" duration="25">
+        <p>O código original utiliza este tipo:</p>
+<pre><code language="language-ts" class="language-ts">type TipoUserGit = {
+  login: string;
+  id: number;
+  avatar_url: string;
+};
+</code></pre>
+<p>Leia como: &#34;Um valor do tipo <code>TipoUserGit</code> precisa ter estas três propriedades, com estes tipos&#34;.</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Trecho</p>
+</td><td colspan="1" rowspan="1"><p>Explicação</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>type</code></p>
+</td><td colspan="1" rowspan="1"><p>Declara um nome para um tipo.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>TipoUserGit</code></p>
+</td><td colspan="1" rowspan="1"><p>Nome escolhido para esse contrato.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>{ ... }</code></p>
+</td><td colspan="1" rowspan="1"><p>Descreve as propriedades do objeto.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>login: string</code></p>
+</td><td colspan="1" rowspan="1"><p>O login é texto.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>id: number</code></p>
+</td><td colspan="1" rowspan="1"><p>O identificador é numérico.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>avatar_url: string</code></p>
+</td><td colspan="1" rowspan="1"><p>O endereço da imagem é texto, não o arquivo da imagem.</p>
+</td></tr>
+</table>
+<p>Os nomes correspondem aos campos recebidos. Trocar <code>avatar_url</code> por <code>avatarUrl</code> apenas no tipo não transforma a resposta do servidor.</p>
+<h2 is-upgraded>O tipo cria um usuário?</h2>
+<p>Não. Para criar um valor de exemplo seria necessário escrever um objeto:</p>
+<pre><code language="language-ts" class="language-ts">const exemplo: TipoUserGit = {
+  login: &#34;ana&#34;,
+  id: 1,
+  avatar_url: &#34;https://example.com/ana.png&#34;,
+};
+</code></pre>
+<p>O tipo descreve. O objeto contém os dados.</p>
+<h2 is-upgraded>Dentro ou fora do componente?</h2>
+<p>Declarar o tipo dentro de <code>Home</code>, como no código inicial, é válido. Na versão completa, ele ficará acima do componente para separar o contrato da lógica da tela. Isso é organização, não uma exigência do React.</p>
+<h2 is-upgraded>E os outros campos da API?</h2>
+<p>Um objeto recebido pode ter outras propriedades. Esse tipo descreve apenas o subconjunto utilizado. A anotação não apaga campos extras e não verifica, sozinha, os dados que chegam pela rede.</p>
+<p><strong>Pratique:</strong> por que <code>id: "123"</code> não atende ao contrato? Como corrigir o valor sem mudar o tipo?</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="5. useState: a memória da tela" duration="30">
+        <p>Observe:</p>
+<pre><code language="language-tsx" class="language-tsx">const [usuarios, setUsuarios] = useState&lt;TipoUserGit[]&gt;([]);
+</code></pre>
+<p>Existem três ideias diferentes nessa linha:</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Trecho</p>
+</td><td colspan="1" rowspan="1"><p>Papel</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>[usuarios, setUsuarios]</code></p>
+</td><td colspan="1" rowspan="1"><p>Desestrutura o par devolvido pelo hook.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code><TipoUserGit[]></code></p>
+</td><td colspan="1" rowspan="1"><p>Informa que o estado armazenará um array de usuários.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>([])</code></p>
+</td><td colspan="1" rowspan="1"><p>Define o valor inicial: um array vazio.</p>
+</td></tr>
+</table>
+<p>Não confunda o <code>[]</code> do tipo com o <code>[]</code> do valor inicial. Um descreve o formato; o outro é o valor usado antes da resposta.</p>
+<h2 is-upgraded>O par devolvido pelo hook</h2>
+<p><code>usuarios</code> permite ler o estado da renderização atual. <code>setUsuarios</code> solicita sua atualização. Depois de <code>setUsuarios(data)</code>, uma nova renderização pode apresentar a lista recebida. A variável da renderização em andamento não muda imediatamente. Essa é a base do funcionamento descrito na <a href="https://react.dev/reference/react/useState" target="_blank">referência de useState</a>.</p>
+<pre><code language="language-tsx" class="language-tsx">setUsuarios(data);
+// Aqui, usuarios ainda pertence à renderização atual.
+// Para inspecionar a resposta recém-recebida, use console.log(data).
+</code></pre>
+<h2 is-upgraded>Por que não usar uma variável comum?</h2>
+<p>Alterar uma variável comum não solicita ao React que atualize a interface. Já o estado participa do processo de renderização.</p>
+<h2 is-upgraded>Dois estados que não são a mesma coisa</h2>
+<pre><code language="language-tsx" class="language-tsx">const [user, setUser] = useState&lt;string&gt;(&#34;&#34;);
+const [digitado, setDigitado] = useState&lt;string&gt;(&#34;&#34;);
+</code></pre>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Estado</p>
+</td><td colspan="1" rowspan="1"><p>O que guarda</p>
+</td><td colspan="1" rowspan="1"><p>Quem o altera</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>usuarios</code></p>
+</td><td colspan="1" rowspan="1"><p>Lista inicial</p>
+</td><td colspan="1" rowspan="1"><p>Resposta da listagem.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>digitado</code></p>
+</td><td colspan="1" rowspan="1"><p>Conteúdo atual do campo</p>
+</td><td colspan="1" rowspan="1"><p>Evento <code>onChange</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>user</code></p>
+</td><td colspan="1" rowspan="1"><p>Login encontrado</p>
+</td><td colspan="1" rowspan="1"><p>Resposta da pesquisa.</p>
+</td></tr>
+</table>
+<p>Manteremos <code>user</code> como texto, assim como no exemplo inicial. Depois haverá um exercício para guardar o objeto completo.</p>
+<p><code>useState("")</code> já permite inferir <code>string</code>. Escrever <code><string></code> aqui é opcional; foi mantido para facilitar a leitura dos tipos.</p>
+<p><strong>Pratique:</strong> antes de qualquer resposta, quais são os valores dos três estados?</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="6. Dois fluxos e dois momentos de execução" duration="20">
+        <p>Não colocaremos tudo no mesmo efeito.</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Momento</p>
+</td><td colspan="1" rowspan="1"><p>Lista inicial</p>
+</td><td colspan="1" rowspan="1"><p>Pesquisa individual</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Entrada em Home</p>
+</td><td colspan="1" rowspan="1"><p>O efeito inicia a consulta.</p>
+</td><td colspan="1" rowspan="1"><p>Nenhuma consulta individual.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Digitação</p>
+</td><td colspan="1" rowspan="1"><p>A lista permanece.</p>
+</td><td colspan="1" rowspan="1"><p>Apenas <code>digitado</code> muda.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Envio do formulário</p>
+</td><td colspan="1" rowspan="1"><p>A lista permanece.</p>
+</td><td colspan="1" rowspan="1"><p><code>buscador</code> consulta o login informado.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Resposta bem-sucedida</p>
+</td><td colspan="1" rowspan="1"><p>Atualiza <code>usuarios</code>.</p>
+</td><td colspan="1" rowspan="1"><p>Atualiza <code>user</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Falha</p>
+</td><td colspan="1" rowspan="1"><p>Atualiza <code>erroLista</code>.</p>
+</td><td colspan="1" rowspan="1"><p>Atualiza <code>erroBusca</code>.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Renderizar não é pesquisar</h2>
+<p>Renderizar significa executar o componente para calcular o JSX. Digitar pode provocar uma nova renderização. Isso não deve significar &#34;pesquisar na API a cada tecla&#34; nesta atividade.</p>
+<p>Não escreva uma chamada de rede diretamente no corpo de <code>Home</code>:</p>
+<pre><code language="language-tsx" class="language-tsx">// Não use como implementação:
+function Home() {
+  fetch(&#34;https://api.github.com/users&#34;);
+  return &lt;main&gt;Home&lt;/main&gt;;
+}
+</code></pre>
+<p>Isso iniciaria novas requisições durante renderizações. O fluxo inicial pertence ao efeito; a pesquisa solicitada pela pessoa pertence ao manipulador do formulário.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="7. useEffect: quando carregar a lista" duration="30">
+        <p>Esta é a estrutura do efeito original:</p>
+<pre><code language="language-tsx" class="language-tsx">useEffect(() =&gt; {
+  async function loadingData() {
+    // Aqui ficará o carregamento.
+  }
+
+  loadingData();
+}, []);
+</code></pre>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Parte</p>
+</td><td colspan="1" rowspan="1"><p>Leitura</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>useEffect</code></p>
+</td><td colspan="1" rowspan="1"><p>Registra a sincronização com um sistema externo.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>() => { ... }</code></p>
+</td><td colspan="1" rowspan="1"><p>Função de configuração do efeito.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>loadingData</code></p>
+</td><td colspan="1" rowspan="1"><p>Função interna que realiza o trabalho assíncrono.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>loadingData()</code></p>
+</td><td colspan="1" rowspan="1"><p>Executa a função; declarar não basta.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>[]</code></p>
+</td><td colspan="1" rowspan="1"><p>Não há dependências reativas variáveis nesta configuração.</p>
+</td></tr>
+</table>
+<p>O efeito é executado depois que o componente é confirmado na interface. Na entrada em <code>Home</code>, iniciaremos o carregamento. Uma remontagem pode executá-lo novamente; em desenvolvimento, <code>StrictMode</code> também pode realizar um ciclo adicional de configuração e limpeza. Portanto, evite interpretar <code>[]</code> como &#34;uma vez para sempre&#34;. Veja a <a href="https://react.dev/reference/react/useEffect" target="_blank">referência de useEffect</a>.</p>
+<h2 is-upgraded>Dependências não são um botão de velocidade</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Forma</p>
+</td><td colspan="1" rowspan="1"><p>Comportamento</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Sem segundo argumento</p>
+</td><td colspan="1" rowspan="1"><p>Executa após cada confirmação de renderização.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>[]</code></p>
+</td><td colspan="1" rowspan="1"><p>Não repete por mudanças de dependências.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>[digitado]</code></p>
+</td><td colspan="1" rowspan="1"><p>Repete quando <code>digitado</code> muda, além da execução inicial.</p>
+</td></tr>
+</table>
+<p>Neste exemplo, o endereço da lista é fixo e o efeito não lê <code>digitado</code>. Não precisamos incluir o campo da pesquisa nas dependências.</p>
+<p>Não omita uma dependência apenas para silenciar o comportamento. Se o efeito passar a ler um estado, sua estrutura deverá ser reavaliada.</p>
+<p><strong>Pratique:</strong> o que aconteceria se a busca individual fosse feita em um efeito com <code>[digitado]</code>?</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="8. async e await sem pular a explicação" duration="30">
+        <p>Uma operação de rede não termina no mesmo instante em que é solicitada. Precisamos lidar com um resultado futuro.</p>
+<pre><code language="language-tsx" class="language-tsx">async function loadingData() {
+  const response = await fetch(&#34;https://api.github.com/users&#34;);
+  const data = await response.json();
+  console.log(data);
+}
+</code></pre>
+<p>Esse trecho demonstra a sequência; o tratamento de falhas será acrescentado a seguir.</p>
+<h2 is-upgraded>O que async informa?</h2>
+<p>Uma função <code>async</code> sempre devolve uma Promise: um objeto que representa a conclusão futura da operação. Mesmo sem escrever <code>new Promise</code>, estamos utilizando esse mecanismo. Neste codelab não criaremos Promises manualmente nem encadearemos <code>.then()</code>; utilizaremos <code>await</code>.</p>
+<h2 is-upgraded>O que await faz?</h2>
+<p>Suspende a continuação daquela função até que o resultado esteja disponível. Não congela toda a página. Enquanto a rede trabalha, o navegador pode continuar atendendo outras tarefas.</p>
+<p>Quando a operação termina com rejeição, <code>await</code> permite que a falha seja capturada pelo <code>try/catch</code> que envolve a chamada. Veja a explicação de <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function" target="_blank">funções async</a>.</p>
+<h2 is-upgraded>Por que não escrever useEffect(async () =&gt; ...)?</h2>
+<p>A função de configuração do efeito pode retornar uma função de limpeza ou não retornar nada. Uma função <code>async</code> retorna uma Promise. Por isso, mantemos a configuração síncrona e declaramos a função assíncrona dentro dela:</p>
+<pre><code language="language-tsx" class="language-tsx">useEffect(() =&gt; {
+  async function loadingData() {
+    // O await fica aqui dentro.
+  }
+
+  loadingData();
+}, []);
+</code></pre>
+<h2 is-upgraded>Declarar e chamar são ações diferentes</h2>
+<p><code>async function loadingData() { ... }</code> cria a função. <code>loadingData()</code> inicia sua execução. Se a chamada for esquecida, não haverá carregamento.</p>
+<p><strong>Pratique:</strong> em qual função o <code>await</code> suspende a execução: <code>Home</code>, a página inteira ou <code>loadingData</code>?</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="9. fetch, Response e as duas esperas" duration="30">
+        <pre><code language="language-tsx" class="language-tsx">const response = await fetch(&#34;https://api.github.com/users&#34;);
+const data: TipoUserGit[] = await response.json();
+</code></pre>
+<h2 is-upgraded>Primeira espera: obter a resposta</h2>
+<p><code>fetch</code> inicia uma requisição HTTP. Sem configuração de método, usa <code>GET</code>, adequado para consultar os dados desta prática.</p>
+<p>O resultado aguardado é um objeto <code>Response</code>. Ele não é a lista de usuários. Nele podemos inspecionar <code>status</code>, <code>ok</code> e cabeçalhos, além de acessar o corpo. A <a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch" target="_blank">documentação de Fetch</a> detalha essa distinção.</p>
+<h2 is-upgraded>Segunda espera: ler e interpretar o corpo</h2>
+<p><code>response.json()</code> lê o corpo e interpreta seu conteúdo como JSON. O resultado pode ser um array ou um objeto, conforme o endpoint. A leitura também é assíncrona. Consulte <a href="https://developer.mozilla.org/en-US/docs/Web/API/Response/json" target="_blank">Response.json</a>.</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Variável</p>
+</td><td colspan="1" rowspan="1"><p>Contém</p>
+</td><td colspan="1" rowspan="1"><p>Uso nesta prática</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>response</code></p>
+</td><td colspan="1" rowspan="1"><p>Resposta HTTP</p>
+</td><td colspan="1" rowspan="1"><p>Conferir sucesso antes de continuar.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>data</code></p>
+</td><td colspan="1" rowspan="1"><p>Valor interpretado do corpo</p>
+</td><td colspan="1" rowspan="1"><p>Atualizar o estado.</p>
+</td></tr>
+</table>
+<p>Não escreva <code>setUsuarios(response)</code>: o estado espera um array, não o envelope da resposta HTTP.</p>
+<h2 is-upgraded>Erro proposital</h2>
+<pre><code language="language-tsx" class="language-tsx">// Não use:
+const data = response.json();
+setUsuarios(data);
+</code></pre>
+<p>Sem o segundo <code>await</code>, <code>data</code> representa uma Promise, não o array pronto.</p>
+<h2 is-upgraded>O corpo pode ser lido várias vezes?</h2>
+<p>Não reutilize a mesma resposta chamando <code>response.json()</code> repetidamente. Guarde o valor em <code>data</code> e reutilize esse valor para log, validação e atualização do estado.</p>
+<p><strong>Pratique:</strong> explique a diferença entre <code>response.ok</code> e <code>data.login</code>.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="10. response.ok, throw e try/catch" duration="30">
+        <p>Esta sequência precisa permanecer dentro do <code>try</code>:</p>
+<pre><code language="language-tsx" class="language-tsx">try {
+  const response = await fetch(&#34;https://api.github.com/users&#34;);
+
+  if (!response.ok) {
+    throw new Error(&#34;O carregamento da lista de usuários falhou!&#34;);
+  }
+
+  const data: TipoUserGit[] = await response.json();
+  setUsuarios(data);
+} catch (error) {
+  console.error(error);
+}
+</code></pre>
+<h2 is-upgraded>Por que verificar ok?</h2>
+<p>Uma resposta HTTP como 404 pode chegar normalmente ao navegador. <code>fetch</code> não rejeita automaticamente só porque o status indica falha HTTP. <code>response.ok</code> informa se o status está entre 200 e 299. O operador <code>!</code> inverte o valor: <code>!response.ok</code> significa &#34;a resposta não indica sucesso&#34;.</p>
+<h2 is-upgraded>O papel de throw</h2>
+<p><code>new Error(...)</code> cria um objeto de erro. <code>throw</code> interrompe o caminho normal do bloco e lança esse erro. O <code>catch</code> assume o tratamento; as linhas restantes do <code>try</code> são puladas.</p>
+<h2 is-upgraded>Três falhas diferentes</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Falha</p>
+</td><td colspan="1" rowspan="1"><p>Onde aparece</p>
+</td><td colspan="1" rowspan="1"><p>Exemplo de tratamento</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Comunicação de rede</p>
+</td><td colspan="1" rowspan="1"><p>Durante <code>await fetch(...)</code></p>
+</td><td colspan="1" rowspan="1"><p>Avisar que a consulta falhou.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>HTTP sem sucesso</p>
+</td><td colspan="1" rowspan="1"><p>Na verificação de <code>response.ok</code></p>
+</td><td colspan="1" rowspan="1"><p>Lançar uma mensagem apropriada ao status.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Corpo inválido para JSON</p>
+</td><td colspan="1" rowspan="1"><p>Durante <code>await response.json()</code></p>
+</td><td colspan="1" rowspan="1"><p>Capturar a falha de interpretação.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>O problema na busca original</h2>
+<p>No código inicial, o <code>fetch</code> da busca estava antes do <code>try</code>:</p>
+<pre><code language="language-tsx" class="language-tsx">// Estrutura problemática:
+const response = await fetch(url);
+try {
+  // ...
+} catch (error) {
+  console.error(error);
+}
+</code></pre>
+<p>Se a comunicação falhar na primeira linha, esse <code>catch</code> não captura a rejeição, pois o programa ainda não entrou no bloco protegido. A correção é mover a chamada para dentro dele.</p>
+<h2 is-upgraded>Console não substitui uma mensagem na tela</h2>
+<p><code>console.error</code> ajuda durante o desenvolvimento. A pessoa que está usando a aplicação normalmente não abre o console. Por isso, também guardaremos uma mensagem em estado.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="11. Carregamento, erro e resultado são estados diferentes" duration="25">
+        <p>Adicione estados separados para os dois fluxos:</p>
+<pre><code language="language-tsx" class="language-tsx">const [carregandoLista, setCarregandoLista] = useState(true);
+const [erroLista, setErroLista] = useState(&#34;&#34;);
+const [buscando, setBuscando] = useState(false);
+const [erroBusca, setErroBusca] = useState(&#34;&#34;);
+</code></pre>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Estado</p>
+</td><td colspan="1" rowspan="1"><p>Valor inicial</p>
+</td><td colspan="1" rowspan="1"><p>Motivo</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>carregandoLista</code></p>
+</td><td colspan="1" rowspan="1"><p><code>true</code></p>
+</td><td colspan="1" rowspan="1"><p>A primeira tela ainda espera a lista.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>erroLista</code></p>
+</td><td colspan="1" rowspan="1"><p><code>""</code></p>
+</td><td colspan="1" rowspan="1"><p>Ainda não existe erro de listagem.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>buscando</code></p>
+</td><td colspan="1" rowspan="1"><p><code>false</code></p>
+</td><td colspan="1" rowspan="1"><p>Ninguém pesquisou ainda.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>erroBusca</code></p>
+</td><td colspan="1" rowspan="1"><p><code>""</code></p>
+</td><td colspan="1" rowspan="1"><p>Ainda não existe erro de pesquisa.</p>
+</td></tr>
+</table>
+<p>Se usássemos um único booleano para lista e busca, a conclusão de uma operação poderia apagar o indicador da outra. Separar os estados preserva a independência dos fluxos.</p>
+<h2 is-upgraded>O bloco finally</h2>
+<pre><code language="language-tsx" class="language-tsx">try {
+  // Consulta e tratamento de resposta.
+} catch (error) {
+  // Mensagem em caso de falha.
+} finally {
+  setBuscando(false);
+}
+</code></pre>
+<p><code>finally</code> executa ao sair do <code>try/catch</code>, com sucesso ou falha. É o lugar adequado para encerrar o indicador da pesquisa. Não significa que a operação teve sucesso.</p>
+<h2 is-upgraded>Como ler error.message com TypeScript?</h2>
+<p>Não presuma que todo valor lançado é um objeto <code>Error</code>:</p>
+<pre><code language="language-tsx" class="language-tsx">const mensagem = error instanceof Error
+  ? error.message
+  : &#34;Não foi possível concluir a operação.&#34;;
+</code></pre>
+<p><code>instanceof Error</code> verifica o tipo em execução. O operador ternário escolhe a primeira mensagem se a condição for verdadeira e a segunda caso contrário. Esse refinamento de tipo é uma forma de <a href="https://www.typescriptlang.org/docs/handbook/2/narrowing.html" target="_blank">narrowing no TypeScript</a>.</p>
+<p><strong>Pratique:</strong> se a busca falhar, qual estado deverá terminar como <code>false</code>? Qual estado deverá receber a mensagem?</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="12. Apresentando usuários com map e key" duration="25">
+        <pre><code language="language-tsx" class="language-tsx">&lt;ul&gt;
+  {usuarios.map((u) =&gt; (
+    &lt;li key={u.id}&gt;
+      {u.id} - {u.login}
+      &lt;img src={u.avatar_url} alt={`Avatar de ${u.login}`} width={30} height={30} /&gt;
+    &lt;/li&gt;
+  ))}
+&lt;/ul&gt;
+</code></pre>
+<h2 is-upgraded>Leia uma repetição de cada vez</h2>
+<p><code>map</code> percorre o array. Em cada execução da função, <code>u</code> representa um usuário. A função devolve um elemento <code>li</code>. O resultado do <code>map</code> é um novo array contendo os elementos a apresentar.</p>
+<p>Você pode trocar <code>u</code> por <code>usuario</code>; o nome curto não possui comportamento especial.</p>
+<h2 is-upgraded>Por que os parênteses depois da seta?</h2>
+<pre><code language="language-tsx" class="language-tsx">(u) =&gt; (&lt;li key={u.id}&gt;{u.login}&lt;/li&gt;)
+</code></pre>
+<p>Essa forma retorna a expressão diretamente. Com chaves, é necessário escrever <code>return</code>:</p>
+<pre><code language="language-tsx" class="language-tsx">(u) =&gt; {
+  return &lt;li key={u.id}&gt;{u.login}&lt;/li&gt;;
+}
+</code></pre>
+<p>Se esquecer <code>return</code> na segunda forma, não produzirá os elementos esperados.</p>
+<h2 is-upgraded>O papel de key</h2>
+<p><code>key={u.id}</code> identifica cada item entre seus irmãos. Não é uma posição visual nem uma propriedade HTML comum. Use a identidade estável fornecida pelos dados; não gere uma chave aleatória a cada renderização. Consulte <a href="https://react.dev/learn/rendering-lists" target="_blank">renderização de listas no React</a>.</p>
+<h2 is-upgraded>O que acontece com o array vazio?</h2>
+<p><code>[].map(...)</code> produz outro array vazio. Não haverá itens até que os dados cheguem. Isso explica por que iniciar com <code>[]</code> permite renderizar antes da resposta sem chamar métodos sobre <code>undefined</code>.</p>
+<h2 is-upgraded>Imagens e acessibilidade</h2>
+<p><code>src</code> recebe a URL do avatar. <code>alt</code> descreve a imagem. <code>width</code> e <code>height</code> reservam dimensões. Os avatares serão carregados pelo navegador da aplicação, não pelo exportador do codelab: aqui, a tag está dentro de um bloco de código.</p>
+<p>O trecho <code>{" "}</code> do exemplo inicial insere um espaço no texto JSX. Não interfere na requisição nem nos estados.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="13. Campo controlado: da digitação ao estado" duration="25">
+        <pre><code language="language-tsx" class="language-tsx">&lt;label htmlFor=&#34;login-github&#34;&gt;Login do GitHub&lt;/label&gt;
+&lt;input
+  id=&#34;login-github&#34;
+  type=&#34;text&#34;
+  value={digitado}
+  onChange={(event) =&gt; setDigitado(event.target.value)}
+  placeholder=&#34;Exemplo: octocat&#34;
+/&gt;
+</code></pre>
+<h2 is-upgraded>label e input precisam estar associados</h2>
+<p><code>htmlFor="login-github"</code> aponta para <code>id="login-github"</code>. No exemplo inicial, <code>htmlFor</code> estava vazio. Agora, clicar no rótulo direciona o foco para o campo.</p>
+<p>O <code>placeholder</code> é apenas uma dica e desaparece durante a digitação; ele não substitui o rótulo.</p>
+<h2 is-upgraded>Como ler onChange</h2>
+<ol type="1">
+<li>A pessoa altera o campo.</li>
+<li>O navegador informa o evento.</li>
+<li><code>event.target</code> identifica o elemento que originou a alteração.</li>
+<li><code>.value</code> fornece o texto atual.</li>
+<li><code>setDigitado</code> solicita atualização do estado.</li>
+<li><code>value={digitado}</code> mantém o campo associado ao estado.</li>
+</ol>
+<p>Essa ligação caracteriza um campo controlado. Apenas adicionar <code>onChange</code>, sem <code>value</code>, não torna o campo controlado pelo estado React.</p>
+<h2 is-upgraded>Um erro para reconhecer</h2>
+<pre><code language="language-tsx" class="language-tsx">// Não use:
+onChange={setDigitado(event.target.value)}
+</code></pre>
+<p>Precisamos fornecer uma função para ser executada quando o evento ocorrer, não executar a atualização durante a renderização.</p>
+<p><strong>Pratique:</strong> se a pessoa digitar <code>ana</code>, qual estado muda? Isso já deve mudar <code>user</code>?</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="14. Pesquisa: validando o texto e montando a URL" duration="30">
+        <p>Antes de acessar a rede:</p>
+<pre><code language="language-tsx" class="language-tsx">const login = digitado.trim();
+
+if (login === &#34;&#34;) {
+  setUser(&#34;&#34;);
+  setErroBusca(&#34;Digite um login antes de pesquisar.&#34;);
+  return;
+}
+</code></pre>
+<p><code>trim()</code> produz um texto sem espaços no início e no fim. Não remove espaços internos nem altera <code>digitado</code> automaticamente.</p>
+<p><code>return</code> encerra a função. Nesse caso, nenhuma requisição é necessária.</p>
+<h2 is-upgraded>Montando o endereço</h2>
+<pre><code language="language-tsx" class="language-tsx">const url = `https://api.github.com/users/${encodeURIComponent(login)}`;
+</code></pre>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Trecho</p>
+</td><td colspan="1" rowspan="1"><p>Significado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Crases</p>
+</td><td colspan="1" rowspan="1"><p>Delimitam uma template string.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>${...}</code></p>
+</td><td colspan="1" rowspan="1"><p>Insere o resultado de uma expressão no texto.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>login</code></p>
+</td><td colspan="1" rowspan="1"><p>Contém o valor normalizado com <code>trim</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>encodeURIComponent</code></p>
+</td><td colspan="1" rowspan="1"><p>Codifica caracteres para que componham um segmento do endereço.</p>
+</td></tr>
+</table>
+<p>Se <code>login</code> for <code>octocat</code>, o endereço final será <code>https://api.github.com/users/octocat</code>.</p>
+<p>Codificar não valida a existência de uma conta e não transforma um nome completo em login. A API ainda poderá recusar ou não encontrar o valor informado.</p>
+<h2 is-upgraded>Array ou objeto?</h2>
+<p>Na pesquisa individual:</p>
+<pre><code language="language-tsx" class="language-tsx">const data: TipoUserGit = await response.json();
+setUser(data.login);
+</code></pre>
+<p>Não há <code>[]</code> no tipo porque o endpoint individual retorna um objeto. <code>setUser(data)</code> seria incompatível com nosso estado de texto. <code>setUser(data.login)</code> guarda somente o campo desejado.</p>
+<p><strong>Pratique:</strong> por que usar <code>/users/ana</code> é diferente de filtrar localmente o array <code>usuarios</code>?</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="15. Pesquisando pelo formulário, inclusive com Enter" duration="25">
+        <p>O botão do código original usa <code>onClick={buscador}</code>. Isso é uma passagem válida de função, sem executá-la durante a renderização.</p>
+<p>Vamos evoluir para um formulário, mantendo a mesma intenção e permitindo o envio com Enter:</p>
+<pre><code language="language-tsx" class="language-tsx">import { useEffect, useState, type FormEvent } from &#34;react&#34;;
+</code></pre>
+<p><code>FormEvent</code> é importado como tipo porque descreve o evento, não uma função executada no navegador.</p>
+<pre><code language="language-tsx" class="language-tsx">const buscador = async (event: FormEvent&lt;HTMLFormElement&gt;) =&gt; {
+  event.preventDefault();
+  // Validação e consulta serão inseridas aqui.
+};
+</code></pre>
+<p><code>HTMLFormElement</code> informa qual elemento está associado a esse evento. <code>preventDefault()</code> impede a navegação tradicional do formulário; o React continuará controlando a atualização da tela.</p>
+<pre><code language="language-tsx" class="language-tsx">&lt;form onSubmit={buscador}&gt;
+  &lt;label htmlFor=&#34;login-github&#34;&gt;Login do GitHub&lt;/label&gt;
+  &lt;input
+    id=&#34;login-github&#34;
+    value={digitado}
+    onChange={(event) =&gt; setDigitado(event.target.value)}
+  /&gt;
+  &lt;button type=&#34;submit&#34;&gt;Pesquisar&lt;/button&gt;
+&lt;/form&gt;
+</code></pre>
+<p>Não mantenha também <code>onClick={buscador}</code> nesse botão: centralize o fluxo no <code>onSubmit</code>. Isso evita misturar o tipo de evento de clique com o de formulário.</p>
+<h2 is-upgraded>Impedindo pesquisas simultâneas na interface</h2>
+<p>Na versão final:</p>
+<ul>
+<li>a função retorna se <code>buscando</code> já for verdadeiro;</li>
+<li>o botão fica desabilitado durante a consulta;</li>
+<li>o campo também fica desabilitado;</li>
+<li>o botão muda para &#34;Pesquisando...&#34;.</li>
+</ul>
+<p>Esse desenho limita a pesquisa a uma operação por vez pelo formulário. Não é uma solução geral para autocomplete ou múltiplas buscas concorrentes; esses cenários exigem controle adicional de cancelamento ou da ordem das respostas.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="16. Limpando o efeito e entendendo StrictMode" duration="30">
+        <p>A pessoa pode sair de <code>Home</code> antes de a resposta da lista chegar. Vamos associar o carregamento a um controlador:</p>
+<pre><code language="language-tsx" class="language-tsx">useEffect(() =&gt; {
+  const controller = new AbortController();
+
+  async function loadingData() {
+    // O fetch receberá { signal: controller.signal }.
+  }
+
+  loadingData();
+
+  return () =&gt; {
+    controller.abort();
+  };
+}, []);
+</code></pre>
+<p><code>AbortController</code> é uma API do navegador, não um hook. <code>signal</code> informa à operação se houve cancelamento. <code>abort()</code> solicita o cancelamento. A função retornada pelo efeito é sua limpeza.</p>
+<p>Na requisição:</p>
+<pre><code language="language-tsx" class="language-tsx">const response = await fetch(&#34;https://api.github.com/users&#34;, {
+  signal: controller.signal,
+});
+</code></pre>
+<p>Depois de uma espera, verificaremos <code>controller.signal.aborted</code> antes de alterar os estados. No <code>catch</code>, cancelamentos não serão apresentados como falhas ao usuário. No <code>finally</code>, também evitaremos atualizar um carregamento cancelado.</p>
+<h2 is-upgraded>Por que posso ver duas requisições no desenvolvimento?</h2>
+<p>Com o teste adicional de efeitos do <code>StrictMode</code>, você pode observar uma tentativa cancelada e outra válida. A limpeza torna o fluxo preparado para esse cenário. Não remova <code>StrictMode</code> apenas para esconder o teste.</p>
+<p>Cancelar no navegador não garante que o servidor deixou de receber a requisição nem que ela deixou de contar para os limites da API.</p>
+<h2 is-upgraded>Escopo desta limpeza</h2>
+<p>O controlador pertence à lista iniciada pelo efeito. Ele não cancela automaticamente a busca individual do formulário. Nesta versão didática, a busca poderá terminar mesmo após a saída da página; seu resultado não será reaproveitado pela próxima montagem de <code>Home</code>. Cancelar também a busca é uma evolução separada, que pode guardar outro controlador em uma referência.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="17. Tipar não é validar a resposta" duration="25">
+        <p>Esta linha informa ao TypeScript o formato esperado:</p>
+<pre><code language="language-tsx" class="language-tsx">const data: TipoUserGit[] = await response.json();
+</code></pre>
+<p>Ela não inspeciona automaticamente todos os elementos recebidos. As anotações de tipo não viram validação dos dados no navegador.</p>
+<p>Para manter o primeiro contato próximo do código inicial, a versão completa usa o contrato esperado do GitHub. Em uma aplicação que precise validar respostas externas, comece recebendo <code>unknown</code> e confira a estrutura.</p>
+<h2 is-upgraded>Extensão opcional: validar um usuário</h2>
+<pre><code language="language-ts" class="language-ts">function ehUsuarioGit(valor: unknown): valor is TipoUserGit {
+  return (
+    typeof valor === &#34;object&#34; &amp;&amp;
+    valor !== null &amp;&amp;
+    &#34;login&#34; in valor &amp;&amp;
+    typeof valor.login === &#34;string&#34; &amp;&amp;
+    &#34;id&#34; in valor &amp;&amp;
+    typeof valor.id === &#34;number&#34; &amp;&amp;
+    &#34;avatar_url&#34; in valor &amp;&amp;
+    typeof valor.avatar_url === &#34;string&#34;
+  );
+}
+</code></pre>
+<p><code>unknown</code> significa &#34;ainda não sabemos o tipo&#34;. <code>typeof</code> verifica a categoria do valor. <code>in</code> verifica a presença da propriedade. <code>&&</code> exige que todas as condições sejam satisfeitas. A ordem protege o acesso às propriedades.</p>
+<p><code>valor is TipoUserGit</code> é um predicado de tipo: quando a função retorna verdadeiro, o TypeScript pode tratar o argumento como <code>TipoUserGit</code> naquele caminho.</p>
+<p>Para a lista, substitua a leitura tipada por:</p>
+<pre><code language="language-tsx" class="language-tsx">const data: unknown = await response.json();
+
+if (!Array.isArray(data) || !data.every(ehUsuarioGit)) {
+  throw new Error(&#34;A API retornou uma lista com formato inesperado.&#34;);
+}
+
+setUsuarios(data);
+</code></pre>
+<p><code>Array.isArray</code> verifica se é um array. <code>every</code> exige que todos os elementos passem no teste. Diferentemente de <code>map</code>, ele devolve um booleano.</p>
+<p>Esse validador confere os tipos mínimos usados aqui. Ele não verifica se a URL do avatar existe nem se o identificador pertence realmente à conta informada.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="18. Código completo de Home, comentado" duration="45">
+        <p>Substitua o conteúdo de <code>src/routes/Home/index.tsx</code> pelo código abaixo. Não altere <code>main.tsx</code> nem <code>App.tsx</code>.</p>
+<p>As classes de apresentação usam Tailwind, caso ele já esteja configurado no projeto. Sem Tailwind, a lógica funciona, mas essas classes não produzirão o estilo esperado. Nenhuma instalação adicional é necessária para <code>fetch</code> ou <code>AbortController</code> em navegadores modernos.</p>
+<pre><code language="language-tsx" class="language-tsx">import { useEffect, useState, type FormEvent } from &#34;react&#34;;
+
+// Contrato dos campos utilizados nesta prática.
+type TipoUserGit = {
+  login: string;
+  id: number;
+  avatar_url: string;
+};
+
+export default function Home() {
+  // Fluxo 1: lista carregada na entrada da página.
+  const [usuarios, setUsuarios] = useState&lt;TipoUserGit[]&gt;([]);
+  const [carregandoLista, setCarregandoLista] = useState(true);
+  const [erroLista, setErroLista] = useState(&#34;&#34;);
+
+  // Fluxo 2: texto digitado e resultado da pesquisa individual.
+  const [user, setUser] = useState&lt;string&gt;(&#34;&#34;);
+  const [digitado, setDigitado] = useState&lt;string&gt;(&#34;&#34;);
+  const [buscando, setBuscando] = useState(false);
+  const [erroBusca, setErroBusca] = useState(&#34;&#34;);
+
+  useEffect(() =&gt; {
+    // Cada configuração do efeito possui seu próprio controlador.
+    const controller = new AbortController();
+
+    async function loadingData() {
+      try {
+        const response = await fetch(&#34;https://api.github.com/users&#34;, {
+          signal: controller.signal,
+        });
+
+        // Uma resposta HTTP de erro também precisa ser tratada.
+        if (!response.ok) {
+          throw new Error(
+            `O carregamento da lista falhou. HTTP ${response.status}.`,
+          );
+        }
+
+        // Tipagem estática: não substitui validação em execução.
+        const data: TipoUserGit[] = await response.json();
+
+        if (!controller.signal.aborted) {
+          setUsuarios(data);
+          setErroLista(&#34;&#34;);
+        }
+      } catch (error) {
+        // Sair da página não deve aparecer como erro de carregamento.
+        if (controller.signal.aborted) return;
+
+        console.error(error);
+        setErroLista(
+          error instanceof Error
+            ? error.message
+            : &#34;Não foi possível carregar os usuários.&#34;,
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setCarregandoLista(false);
+        }
+      }
+    }
+
+    // Declarar a função acima não a executa. Esta chamada inicia o trabalho.
+    loadingData();
+
+    return () =&gt; {
+      controller.abort();
+    };
+  }, []);
+
+  const buscador = async (event: FormEvent&lt;HTMLFormElement&gt;) =&gt; {
+    // Impede o envio tradicional do formulário e a navegação da página.
+    event.preventDefault();
+
+    // O formulário aceita uma pesquisa por vez.
+    if (buscando) return;
+
+    const login = digitado.trim();
+
+    if (login === &#34;&#34;) {
+      setUser(&#34;&#34;);
+      setErroBusca(&#34;Digite um login antes de pesquisar.&#34;);
+      return;
+    }
+
+    // Remove o resultado anterior para não confundi-lo com a nova consulta.
+    setUser(&#34;&#34;);
+    setErroBusca(&#34;&#34;);
+    setBuscando(true);
+
+    try {
+      // O fetch fica DENTRO do try, inclusive para capturar falhas de rede.
+      const response = await fetch(
+        `https://api.github.com/users/${encodeURIComponent(login)}`,
+      );
+
+      if (response.status === 404) {
+        throw new Error(`O usuário &#34;${login}&#34; não foi encontrado.`);
+      }
+
+      if (!response.ok) {
+        throw new Error(`A pesquisa falhou. HTTP ${response.status}.`);
+      }
+
+      // Aqui esperamos um objeto, não um array.
+      const data: TipoUserGit = await response.json();
+      setUser(data.login);
+    } catch (error) {
+      console.error(error);
+      setErroBusca(
+        error instanceof Error
+          ? error.message
+          : &#34;Não foi possível pesquisar esse usuário.&#34;,
+      );
+    } finally {
+      // Encerra a espera tanto em caso de sucesso quanto de falha.
+      setBuscando(false);
+    }
+  };
+
+  return (
+    &lt;main className=&#34;mx-auto max-w-4xl space-y-8 px-4 py-10&#34;&gt;
+      &lt;header&gt;
+        &lt;h1 className=&#34;text-3xl font-bold&#34;&gt;Usuários do GitHub&lt;/h1&gt;
+        &lt;p className=&#34;mt-2&#34;&gt;Consulte a lista pública e pesquise um login exato.&lt;/p&gt;
+      &lt;/header&gt;
+
+      &lt;section aria-labelledby=&#34;titulo-busca&#34; className=&#34;rounded-xl border p-5&#34;&gt;
+        &lt;h2 id=&#34;titulo-busca&#34; className=&#34;mb-4 text-xl font-semibold&#34;&gt;
+          Pesquisar usuário
+        &lt;/h2&gt;
+
+        &lt;form onSubmit={buscador} aria-busy={buscando}&gt;
+          &lt;label htmlFor=&#34;login-github&#34; className=&#34;mb-2 block font-medium&#34;&gt;
+            Login do GitHub
+          &lt;/label&gt;
+
+          &lt;div className=&#34;flex flex-col gap-3 sm:flex-row&#34;&gt;
+            &lt;input
+              id=&#34;login-github&#34;
+              name=&#34;login&#34;
+              type=&#34;text&#34;
+              value={digitado}
+              onChange={(event) =&gt; setDigitado(event.target.value)}
+              placeholder=&#34;Exemplo: octocat&#34;
+              autoComplete=&#34;off&#34;
+              spellCheck={false}
+              disabled={buscando}
+              aria-describedby=&#34;ajuda-login&#34;
+              className=&#34;min-w-0 flex-1 rounded-lg border px-3 py-2&#34;
+            /&gt;
+
+            &lt;button
+              type=&#34;submit&#34;
+              disabled={buscando}
+              className=&#34;rounded-lg bg-slate-900 px-5 py-2 text-white disabled:opacity-60&#34;
+            &gt;
+              {buscando ? &#34;Pesquisando...&#34; : &#34;Pesquisar&#34;}
+            &lt;/button&gt;
+          &lt;/div&gt;
+
+          &lt;p id=&#34;ajuda-login&#34; className=&#34;mt-2 text-sm&#34;&gt;
+            Informe o login, não o nome completo. Você também pode pressionar Enter.
+          &lt;/p&gt;
+        &lt;/form&gt;
+
+        {erroBusca &amp;&amp; (
+          &lt;p role=&#34;alert&#34; className=&#34;mt-4 text-red-700&#34;&gt;{erroBusca}&lt;/p&gt;
+        )}
+
+        &lt;div role=&#34;status&#34; className=&#34;mt-4&#34;&gt;
+          {buscando &amp;&amp; &lt;p&gt;Consultando o GitHub...&lt;/p&gt;}
+          {user &amp;&amp; &lt;p&gt;Usuário encontrado: &lt;strong&gt;{user}&lt;/strong&gt;&lt;/p&gt;}
+        &lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section aria-labelledby=&#34;titulo-lista&#34; aria-busy={carregandoLista}&gt;
+        &lt;h2 id=&#34;titulo-lista&#34; className=&#34;text-xl font-semibold&#34;&gt;
+          Lista inicial de usuários
+        &lt;/h2&gt;
+
+        {carregandoLista &amp;&amp; &lt;p role=&#34;status&#34;&gt;Carregando usuários...&lt;/p&gt;}
+        {erroLista &amp;&amp; &lt;p role=&#34;alert&#34; className=&#34;mt-3 text-red-700&#34;&gt;{erroLista}&lt;/p&gt;}
+
+        {!carregandoLista &amp;&amp; !erroLista &amp;&amp; usuarios.length === 0 &amp;&amp; (
+          &lt;p&gt;A lista recebida está vazia.&lt;/p&gt;
+        )}
+
+        &lt;ul className=&#34;mt-4 grid gap-3 sm:grid-cols-2&#34;&gt;
+          {usuarios.map((u) =&gt; (
+            &lt;li key={u.id} className=&#34;flex items-center gap-3 rounded-lg border p-3&#34;&gt;
+              &lt;img
+                src={u.avatar_url}
+                alt={`Avatar de ${u.login}`}
+                width={40}
+                height={40}
+                loading=&#34;lazy&#34;
+                className=&#34;rounded-full&#34;
+              /&gt;
+              &lt;span&gt;{u.id} - {u.login}&lt;/span&gt;
+            &lt;/li&gt;
+          ))}
+        &lt;/ul&gt;
+      &lt;/section&gt;
+    &lt;/main&gt;
+  );
+}
+</code></pre>
+<h2 is-upgraded>Conferência após colar</h2>
+<ol type="1">
+<li>Salve o arquivo.</li>
+<li>Abra <code>/</code> no navegador.</li>
+<li>Observe a mensagem de carregamento.</li>
+<li>Aguarde a lista.</li>
+<li>Digite um login conhecido, como <code>octocat</code>.</li>
+<li>Envie com Enter.</li>
+<li>Confira o resultado acima da lista.</li>
+<li>Verifique que a listagem inicial não foi substituída pela pesquisa.</li>
+</ol>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="19. Lendo as condições do JSX" duration="20">
+        <p>O JSX completo possui condições que selecionam o que será apresentado.</p>
+<pre><code language="language-tsx" class="language-tsx">{buscando ? &#34;Pesquisando...&#34; : &#34;Pesquisar&#34;}
+</code></pre>
+<p>O ternário escolhe entre dois textos. O primeiro corresponde a verdadeiro; o segundo, a falso.</p>
+<pre><code language="language-tsx" class="language-tsx">{erroBusca &amp;&amp; &lt;p role=&#34;alert&#34;&gt;{erroBusca}&lt;/p&gt;}
+</code></pre>
+<p>Quando a mensagem é uma string não vazia, o parágrafo é apresentado. Quando é <code>""</code>, não aparece texto de erro.</p>
+<pre><code language="language-tsx" class="language-tsx">{!carregandoLista &amp;&amp; !erroLista &amp;&amp; usuarios.length === 0 &amp;&amp; (
+  &lt;p&gt;A lista recebida está vazia.&lt;/p&gt;
+)}
+</code></pre>
+<p>Aqui, três condições precisam ser verdadeiras:</p>
+<ol type="1">
+<li>O carregamento terminou.</li>
+<li>Não existe mensagem de erro.</li>
+<li>O array não possui elementos.</li>
+</ol>
+<p>Sem as duas primeiras verificações, uma tela aguardando resposta poderia dizer &#34;lista vazia&#34; prematuramente.</p>
+<h2 is-upgraded>Atributos de acessibilidade utilizados</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Atributo</p>
+</td><td colspan="1" rowspan="1"><p>Finalidade</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>aria-labelledby</code></p>
+</td><td colspan="1" rowspan="1"><p>Associa a seção ao título indicado por <code>id</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>aria-describedby</code></p>
+</td><td colspan="1" rowspan="1"><p>Associa o campo ao texto de ajuda.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>aria-busy</code></p>
+</td><td colspan="1" rowspan="1"><p>Informa que aquela região está ocupada.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>role="status"</code></p>
+</td><td colspan="1" rowspan="1"><p>Identifica atualizações informativas.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>role="alert"</code></p>
+</td><td colspan="1" rowspan="1"><p>Identifica uma mensagem de erro que merece atenção.</p>
+</td></tr>
+</table>
+<p>As mensagens não dependem apenas de cor. Leia-as com o conteúdo da interface, não como substitutas de rótulos visíveis.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="20. Testes guiados e diagnóstico no navegador" duration="35">
+        <p>Abra as ferramentas do navegador com <code>F12</code>. Use <strong>Network/Rede</strong> para acompanhar as requisições e <strong>Console</strong> para investigar falhas.</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Teste</p>
+</td><td colspan="1" rowspan="1"><p>Ação</p>
+</td><td colspan="1" rowspan="1"><p>Resultado esperado</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Listagem</p>
+</td><td colspan="1" rowspan="1"><p>Entrar em <code>/</code>.</p>
+</td><td colspan="1" rowspan="1"><p>Indicador e depois usuários, ou mensagem de falha.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Digitação</p>
+</td><td colspan="1" rowspan="1"><p>Digitar sem enviar.</p>
+</td><td colspan="1" rowspan="1"><p>Nenhuma nova consulta individual.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Busca válida</p>
+</td><td colspan="1" rowspan="1"><p>Pesquisar um login existente.</p>
+</td><td colspan="1" rowspan="1"><p>Login retornado aparece.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Campo vazio</p>
+</td><td colspan="1" rowspan="1"><p>Enviar sem texto.</p>
+</td><td colspan="1" rowspan="1"><p>Mensagem local, sem nova requisição.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Espaços</p>
+</td><td colspan="1" rowspan="1"><p>Enviar somente espaços.</p>
+</td><td colspan="1" rowspan="1"><p>Mesmo tratamento do vazio.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Espaços nas pontas</p>
+</td><td colspan="1" rowspan="1"><p>Pesquisar <code>octocat</code>.</p>
+</td><td colspan="1" rowspan="1"><p>Consulta feita com <code>octocat</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Login inexistente</p>
+</td><td colspan="1" rowspan="1"><p>Enviar um login que não exista.</p>
+</td><td colspan="1" rowspan="1"><p>Se o servidor devolver 404, mensagem específica.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Rede desconectada</p>
+</td><td colspan="1" rowspan="1"><p>Ativar Offline na aba de rede e pesquisar.</p>
+</td><td colspan="1" rowspan="1"><p>Erro tratado; botão habilitado novamente ao terminar.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Enter</p>
+</td><td colspan="1" rowspan="1"><p>Enviar pelo teclado.</p>
+</td><td colspan="1" rowspan="1"><p>Mesmo fluxo do botão.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Espera</p>
+</td><td colspan="1" rowspan="1"><p>Usar limitação de velocidade na aba de rede.</p>
+</td><td colspan="1" rowspan="1"><p>Campo e botão desabilitados durante a busca.</p>
+</td></tr>
+</table>
+<p>Depois do teste Offline, restaure a conexão na ferramenta. Não deixe o navegador simulando falta de rede ao continuar.</p>
+<h2 is-upgraded>O que observar na requisição</h2>
+<ol type="1">
+<li>Confira a URL: o login está no segmento correto?</li>
+<li>Confira o método: <code>GET</code>.</li>
+<li>Confira o status.</li>
+<li>Na resposta, identifique se o corpo é array ou objeto.</li>
+<li>Compare os campos com <code>TipoUserGit</code>.</li>
+</ol>
+<h2 is-upgraded>Erros frequentes</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Sintoma</p>
+</td><td colspan="1" rowspan="1"><p>Investigue</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>A lista nunca é solicitada</p>
+</td><td colspan="1" rowspan="1"><p>A chamada <code>loadingData()</code> foi esquecida?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Muitas consultas a cada tecla</p>
+</td><td colspan="1" rowspan="1"><p>O fetch foi colocado no corpo do componente ou num efeito dependente de <code>digitado</code>?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Falha de rede não aparece na tela</p>
+</td><td colspan="1" rowspan="1"><p>O fetch da busca está dentro do try? O catch atualiza o estado de erro?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><code>map is not a function</code></p>
+</td><td colspan="1" rowspan="1"><p>O estado recebeu um objeto de erro ou uma resposta individual em vez de array?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>O resultado antigo continua após uma falha</p>
+</td><td colspan="1" rowspan="1"><p>A nova pesquisa limpou <code>user</code>?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Campo não aceita digitação</p>
+</td><td colspan="1" rowspan="1"><p>Existe <code>value</code> sem um <code>onChange</code> que atualize o estado?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Página navega ao enviar</p>
+</td><td colspan="1" rowspan="1"><p><code>preventDefault()</code> foi chamado?</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>HTTP 403 ou 429</p>
+</td><td colspan="1" rowspan="1"><p>Inspecione a resposta e os cabeçalhos; pode haver limitação de requisições.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Um cuidado especial em sala de aula</h2>
+<p>Consultas públicas sem autenticação têm limite primário de 60 requisições por hora por IP. Alunos na mesma rede podem compartilhar o IP público e consumir a mesma cota. Há também limites secundários; não tente contorná-los. Consulte a <a href="https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api" target="_blank">documentação de limites do GitHub</a>.</p>
+<p>Não coloque tokens pessoais no componente, no repositório ou em variáveis <code>VITE_*</code> pensando que ficarão secretos. Código e variáveis expostos ao front-end podem ser inspecionados. Esta prática usa somente consultas públicas sem token.</p>
+<h2 is-upgraded>Verificação do projeto</h2>
+<pre><code language="language-bash" class="language-bash">npm run build
+</code></pre>
+<p>Executa o script de construção definido no projeto. Leia as mensagens de TypeScript e corrija os erros apontados.</p>
+<p>Se existir um script <code>lint</code> no <code>package.json</code>, execute também:</p>
+<pre><code language="language-bash" class="language-bash">npm run lint
+</code></pre>
+<p>Não desative regras de hooks apenas para fazer o aviso desaparecer. Confira a causa.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="21. Exercícios de compreensão e evolução" duration="40">
+        <h2 is-upgraded>Exercício 1 — tipos</h2>
+<p>Explique a diferença entre <code>TipoUserGit</code> e <code>TipoUserGit[]</code>. Em qual requisição cada um é utilizado?</p>
+<h2 is-upgraded>Exercício 2 — sequência</h2>
+<p>Coloque em ordem: interpretar o corpo, iniciar a requisição, atualizar o estado, verificar <code>ok</code>, apresentar a nova renderização.</p>
+<h2 is-upgraded>Exercício 3 — duas ações diferentes</h2>
+<p>Explique por que digitar altera <code>digitado</code>, mas não deve executar a pesquisa neste exemplo.</p>
+<h2 is-upgraded>Exercício 4 — diagnóstico</h2>
+<p>O colega escreveu <code>fetch</code> antes do <code>try</code>. Uma resposta 404 entra no tratamento, mas uma falha de rede não. Explique essa diferença e corrija a estrutura.</p>
+<h2 is-upgraded>Exercício 5 — map</h2>
+<p>Crie um array contendo apenas os logins recebidos. Depois explique por que o array original permanece disponível.</p>
+<h2 is-upgraded>Exercício 6 — filtro local</h2>
+<p>Crie uma variável <code>usuariosFiltrados</code> que contenha apenas os usuários da lista inicial cujo login inclua o texto digitado, sem diferenciar maiúsculas e minúsculas. Não faça nova requisição e não altere a pesquisa individual por enquanto.</p>
+<p>Explique por que isso não pesquisa em todos os usuários do GitHub.</p>
+<h2 is-upgraded>Exercício 7 — resultado completo</h2>
+<p>Evolua <code>user</code> para armazenar <code>TipoUserGit | null</code>. Apresente login, id e avatar do resultado da pesquisa. Atualize também a limpeza do resultado.</p>
+<h2 is-upgraded>Exercício 8 — validação real</h2>
+<p>Use <code>ehUsuarioGit</code>, da etapa 17, para verificar a resposta individual antes de armazená-la.</p>
+<h2 is-upgraded>Exercício 9 — independência dos fluxos</h2>
+<p>Simule falha na listagem e explique por que a pesquisa ainda possui seus próprios estados. Qual seria o problema de compartilhar um único <code>erro</code> entre ambas?</p>
+<h2 is-upgraded>Prática integradora</h2>
+<p>Implemente os exercícios 6, 7 e 8. Mantenha o carregamento inicial no efeito e a busca individual no formulário. Teste teclado, campo vazio, resposta válida e falha de rede.</p>
+<p>Não altere as rotas. Não transforme o efeito em uma função <code>async</code>. Não use um efeito adicional apenas para copiar um array filtrado para outro estado.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="22. Gabarito comentado" duration="30">
+        <h2 is-upgraded>Respostas das verificações durante o estudo</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Etapa</p>
+</td><td colspan="1" rowspan="1"><p>Resposta</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>2</p>
+</td><td colspan="1" rowspan="1"><p><code>/</code> seleciona uma página local; a URL da API solicita dados ao servidor.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>4</p>
+</td><td colspan="1" rowspan="1"><p><code>"123"</code> é string. Use <code>123</code> se o contrato exige number.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>5</p>
+</td><td colspan="1" rowspan="1"><p><code>usuarios</code> começa com <code>[]</code>; <code>user</code> e <code>digitado</code>, com <code>""</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>7</p>
+</td><td colspan="1" rowspan="1"><p>O efeito repetiria a busca quando o texto mudasse, além de executar inicialmente.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>8</p>
+</td><td colspan="1" rowspan="1"><p>A continuação suspensa é a de <code>loadingData</code>.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>9</p>
+</td><td colspan="1" rowspan="1"><p><code>response.ok</code> informa sucesso HTTP; <code>data.login</code> é um campo do corpo interpretado.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>11</p>
+</td><td colspan="1" rowspan="1"><p><code>buscando</code> termina falso; <code>erroBusca</code> recebe a mensagem.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>13</p>
+</td><td colspan="1" rowspan="1"><p>Muda <code>digitado</code>. <code>user</code> representa a resposta, não a digitação.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>14</p>
+</td><td colspan="1" rowspan="1"><p>A consulta remota busca aquele login; o filtro local só examina os usuários já recebidos.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Exercícios 1 a 4</h2>
+<ol type="1">
+<li><code>TipoUserGit</code> representa um objeto, usado na pesquisa individual. <code>TipoUserGit[]</code> representa uma lista, usada no carregamento inicial.</li>
+<li>Iniciar requisição, verificar <code>ok</code>, interpretar o corpo, atualizar o estado, apresentar a nova renderização.</li>
+<li>A digitação atualiza o campo controlado. O envio do formulário é o evento escolhido para iniciar a pesquisa.</li>
+<li>Um 404 devolve uma resposta que pode ser inspecionada no try posterior. Uma falha de rede rejeita o await que estava fora dele. Coloque <code>await fetch(...)</code>, a verificação HTTP e a interpretação do corpo dentro do try.</li>
+</ol>
+<h2 is-upgraded>Exercício 5</h2>
+<pre><code language="language-tsx" class="language-tsx">const logins = usuarios.map((usuario) =&gt; usuario.login);
+</code></pre>
+<p><code>map</code> cria um novo array com os retornos da função. Esse callback apenas lê cada objeto; não modifica o array original.</p>
+<h2 is-upgraded>Exercício 6</h2>
+<p>Dentro de <code>Home</code>, antes do return:</p>
+<pre><code language="language-tsx" class="language-tsx">const termo = digitado.trim().toLowerCase();
+const usuariosFiltrados = usuarios.filter((usuario) =&gt;
+  usuario.login.toLowerCase().includes(termo),
+);
+</code></pre>
+<p><code>filter</code> mantém os itens cujo teste devolve verdadeiro. <code>toLowerCase</code> normaliza letras. <code>includes</code> verifica a presença de uma sequência de caracteres.</p>
+<p>Para visualizar o filtro, troque <code>usuarios.map</code> por <code>usuariosFiltrados.map</code>. Ajuste a mensagem de vazio para considerar <code>usuariosFiltrados.length</code> e diga &#34;Nenhum usuário da lista corresponde ao filtro&#34;.</p>
+<p>Não crie estado extra para esse resultado: ele é calculado a partir de <code>usuarios</code> e <code>digitado</code>. Somente a página já carregada será filtrada.</p>
+<h2 is-upgraded>Exercício 7</h2>
+<p>Substitua o estado:</p>
+<pre><code language="language-tsx" class="language-tsx">const [user, setUser] = useState&lt;TipoUserGit | null&gt;(null);
+</code></pre>
+<p>O símbolo <code>|</code> representa união: o estado aceita um usuário ou a ausência dele, representada por <code>null</code>.</p>
+<p>Substitua as duas limpezas <code>setUser("")</code> por <code>setUser(null)</code>. Na resposta bem-sucedida, use <code>setUser(data)</code>.</p>
+<p>Substitua o trecho do resultado:</p>
+<pre><code language="language-tsx" class="language-tsx">{user &amp;&amp; (
+  &lt;article&gt;
+    &lt;h3&gt;{user.login}&lt;/h3&gt;
+    &lt;p&gt;Identificador: {user.id}&lt;/p&gt;
+    &lt;img
+      src={user.avatar_url}
+      alt={`Avatar de ${user.login}`}
+      width={80}
+      height={80}
+    /&gt;
+  &lt;/article&gt;
+)}
+</code></pre>
+<p>Não mantenha <code>{user}</code> sozinho no JSX, pois agora ele é um objeto, não um texto.</p>
+<h2 is-upgraded>Exercício 8</h2>
+<p>Coloque <code>ehUsuarioGit</code> acima de <code>Home</code>. Dentro do try da pesquisa, substitua a leitura e a atualização por:</p>
+<pre><code language="language-tsx" class="language-tsx">const data: unknown = await response.json();
+
+if (!ehUsuarioGit(data)) {
+  throw new Error(&#34;O usuário recebido tem formato inesperado.&#34;);
+}
+
+setUser(data);
+</code></pre>
+<p>Esse trecho pressupõe o estado em objeto do exercício 7. Se manteve o estado original de texto, a última linha deve ser <code>setUser(data.login)</code>.</p>
+<h2 is-upgraded>Exercício 9</h2>
+<p>Lista e pesquisa podem terminar em momentos diferentes. Um erro compartilhado poderia ser apagado pela operação errada, ou aparecer na região errada da interface. Estados independentes deixam explícita a origem da mensagem.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="23. Checklist final e referências" duration="10">
+        <h2 is-upgraded>Checklist</h2>
+<ul>
+<li>[ ] O código está em <code>src/routes/Home/index.tsx</code>.</li>
+<li>[ ] As rotas do projeto foram preservadas.</li>
+<li>[ ] Sei distinguir um objeto de um array de objetos.</li>
+<li>[ ] Entendo o valor inicial de cada estado.</li>
+<li>[ ] A lista carrega pelo efeito, e a pesquisa pelo formulário.</li>
+<li>[ ] Sei explicar as duas operações aguardadas com await.</li>
+<li>[ ] Ambos os fetch estão dentro de try.</li>
+<li>[ ] A resposta HTTP é verificada antes da atualização do estado.</li>
+<li>[ ] Há mensagens visíveis para carregamento e falha.</li>
+<li>[ ] O formulário funciona com Enter.</li>
+<li>[ ] O label está associado ao input.</li>
+<li>[ ] O campo é controlado com value e onChange.</li>
+<li>[ ] O map produz elementos com chave estável.</li>
+<li>[ ] A limpeza cancela o carregamento da lista.</li>
+<li>[ ] Sei que a tipagem não valida a resposta em execução.</li>
+<li>[ ] Não há tokens pessoais no front-end.</li>
+</ul>
+<h2 is-upgraded>Glossário de consulta rápida</h2>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Termo</p>
+</td><td colspan="1" rowspan="1"><p>Significado nesta prática</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Estado</p>
+</td><td colspan="1" rowspan="1"><p>Informação preservada pelo React entre renderizações.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Hook</p>
+</td><td colspan="1" rowspan="1"><p>Função que permite utilizar recursos do React.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Efeito</p>
+</td><td colspan="1" rowspan="1"><p>Sincronização do componente com um sistema externo.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Callback</p>
+</td><td colspan="1" rowspan="1"><p>Função entregue para outra parte do programa executar.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Endpoint</p>
+</td><td colspan="1" rowspan="1"><p>Endereço de uma operação de API.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Requisição</p>
+</td><td colspan="1" rowspan="1"><p>Solicitação enviada ao servidor.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Response</p>
+</td><td colspan="1" rowspan="1"><p>Objeto que representa a resposta HTTP.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>JSON</p>
+</td><td colspan="1" rowspan="1"><p>Formato textual usado para transportar dados.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Promise</p>
+</td><td colspan="1" rowspan="1"><p>Representação de uma conclusão futura.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>async</p>
+</td><td colspan="1" rowspan="1"><p>Declara uma função que devolve Promise.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>await</p>
+</td><td colspan="1" rowspan="1"><p>Aguarda um resultado sem bloquear toda a página.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>throw</p>
+</td><td colspan="1" rowspan="1"><p>Lança um erro e interrompe o caminho normal.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>catch</p>
+</td><td colspan="1" rowspan="1"><p>Trata uma falha do bloco protegido.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>finally</p>
+</td><td colspan="1" rowspan="1"><p>Executa ao sair do tratamento, com sucesso ou falha.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Montagem</p>
+</td><td colspan="1" rowspan="1"><p>Entrada de uma instância do componente na interface.</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Limpeza</p>
+</td><td colspan="1" rowspan="1"><p>Função que desfaz ou interrompe trabalho do efeito.</p>
+</td></tr>
+</table>
+<h2 is-upgraded>Referências oficiais e documentação técnica</h2>
+<ul>
+<li><a href="https://react.dev/reference/react/useEffect" target="_blank">React: useEffect</a></li>
+<li><a href="https://react.dev/reference/react/useState" target="_blank">React: useState</a></li>
+<li><a href="https://react.dev/learn/rendering-lists" target="_blank">React: apresentação de listas</a></li>
+<li><a href="https://www.typescriptlang.org/docs/handbook/2/narrowing.html" target="_blank">TypeScript: narrowing</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch" target="_blank">MDN: uso de Fetch</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Response/json" target="_blank">MDN: Response.json</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function" target="_blank">MDN: funções async</a></li>
+<li><a href="https://docs.github.com/en/rest/users/users" target="_blank">GitHub: endpoints de usuários</a></li>
+<li><a href="https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api" target="_blank">GitHub: limites de requisições</a></li>
+</ul>
+<p>Ao concluir, explique sem ler o código: o que inicia cada consulta, qual formato chega da API, qual estado é atualizado e como essa atualização aparece na tela.</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
